@@ -210,22 +210,25 @@
         tryConnect();
       }
 
-      // Use HTMLWidgets postRender if available, otherwise DOMContentLoaded
+      // Strategy: try HTMLWidgets postRender AND a polling fallback.
+      // addPostRenderHandler may never fire if widgets rendered before
+      // our boot script ran (race condition with DOMContentLoaded order).
+      var _initDone = false;
+      function guardedInit() {
+        if (_initDone) return;
+        _initDone = true;
+        init();
+      }
+
       var hwAvail = window.HTMLWidgets && HTMLWidgets.addPostRenderHandler;
       log('DataTableAdapter — HTMLWidgets available:', !!hwAvail,
           'readyState:', document.readyState);
 
       if (hwAvail) {
-        HTMLWidgets.addPostRenderHandler(init);
-      } else {
-        if (document.readyState === 'complete') {
-          log('DataTableAdapter — page already complete, calling init directly');
-          init();
-        } else {
-          log('DataTableAdapter — waiting for window load event');
-          window.addEventListener('load', init);
-        }
+        HTMLWidgets.addPostRenderHandler(guardedInit);
       }
+      // Always also poll as fallback — tryConnect retries if DT isn't ready yet
+      setTimeout(guardedInit, 300);
     }
 
     _update(data) {

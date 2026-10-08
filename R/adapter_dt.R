@@ -12,11 +12,14 @@
   }
 
   # Extract column names from the DT widget
-  # DT stores column names in widget$x$colnames (character vector)
+  # DT stores column names in widget$x$colnames (character vector).
+  # When row names are present, DT prepends a " " entry — strip it.
   col_names <- widget$x$colnames
   if (is.null(col_names)) {
     col_names <- names(widget$x$data)
   }
+  # Remove the row-names placeholder column (DT adds " " as first entry)
+  col_names <- col_names[nzchar(trimws(col_names))]
 
   col_spec_json <- jsonlite::toJSON(col_names, auto_unbox = TRUE)
 
