@@ -1,7 +1,7 @@
 # adapters/plotly.R — Plotly adapter for reactive() (Phase 2)
 
 #' @keywords internal
-.adapt_plotly <- function(widget, mapping = NULL, ...) {
+.adapt_plotly <- function(widget, store_id, mapping = NULL, ...) {
   stop(
     "Plotly adapter is coming in Phase 2. ",
     "For now, use reactive() with DT::datatable().",

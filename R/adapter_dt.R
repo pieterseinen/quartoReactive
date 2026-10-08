@@ -1,17 +1,8 @@
 # adapters/dt.R — DataTables adapter for reactive()
 
 #' @keywords internal
-.adapt_dt <- function(widget, mapping = NULL, ...) {
-  # Find the reactive store id
-  store_id <- .find_reactive_store(widget)
-
-  if (is.null(store_id)) {
-    stop(
-      "Could not detect reactive data in the datatable widget. ",
-      "Make sure you pass an interactive_df as data: datatable(interactive_df).",
-      call. = FALSE
-    )
-  }
+.adapt_dt <- function(widget, store_id, mapping = NULL, ...) {
+  # store_id is resolved by reactive() via NSE before dispatch
 
   # Ensure the widget has a known element id
   widget_id <- widget$elementId

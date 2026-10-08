@@ -23,14 +23,41 @@
 #' }
 #'
 #' @export
-reactive <- function(widget, mapping = NULL, ...) {
+reactive <- function(widget_expr, mapping = NULL, ...) {
+  # Capture the unevaluated expression so we can scan it for
+  # quarto_reactive_df objects (widget constructors like datatable()
+  # strip our custom class/attributes from the data).
+  expr <- substitute(widget_expr)
+  env  <- parent.frame()
+
+  # Evaluate the expression to get the widget object
+  widget <- eval(expr, env)
+
+  # 1. Try to find the reactive store from widget internals
+  store_id <- .find_reactive_store(widget)
+
+  # 2. If that fails, walk the unevaluated expression tree to find
+  #    any quarto_reactive_df arguments (NSE approach)
+  if (is.null(store_id)) {
+    store_id <- .find_store_from_expr(expr, env)
+  }
+
+  if (is.null(store_id)) {
+    stop(
+      "Could not detect reactive data. ",
+      "Make sure you pass an interactive_df as data to the widget, e.g.: ",
+      "reactive(datatable(interactive_df)).",
+      call. = FALSE
+    )
+  }
+
   # Detect widget type and dispatch to adapter
   if (inherits(widget, "datatables")) {
-    return(.adapt_dt(widget, mapping, ...))
+    return(.adapt_dt(widget, store_id, mapping, ...))
   } else if (inherits(widget, "plotly")) {
-    return(.adapt_plotly(widget, mapping, ...))
+    return(.adapt_plotly(widget, store_id, mapping, ...))
   } else if (inherits(widget, "leaflet")) {
-    return(.adapt_leaflet(widget, mapping, ...))
+    return(.adapt_leaflet(widget, store_id, mapping, ...))
   } else {
     stop(
       "Unsupported widget type: ", paste(class(widget), collapse = ", "), ". ",
@@ -40,58 +67,57 @@ reactive <- function(widget, mapping = NULL, ...) {
   }
 }
 
-#' Find the reactive store id from a widget's data
+#' Find the reactive store id from a widget's internal data
 #'
-#' Scans widget internals for a quarto_reactive_df and returns its qr_id.
+#' Scans widget internals for a quarto_reactive_df. This works for widgets
+#' that preserve the original data.frame (e.g. plotly's visdat). For widgets
+#' that strip custom classes (e.g. DT), this returns NULL and the caller
+#' falls back to the NSE-based .find_store_from_expr().
 #'
 #' @param widget An htmlwidget object.
 #' @return The qr_id string, or NULL if not found.
 #' @keywords internal
 .find_reactive_store <- function(widget) {
-  # DT: data is stored in widget$x$data (a list of column vectors)
-  #     but also in widget$x$options$data or the original data attribute
-  if (inherits(widget, "datatables")) {
-    # DT stores the original data in a private env; check the attr
-    data_obj <- attr(widget, "qr_source_data")
-    if (!is.null(data_obj) && inherits(data_obj, "quarto_reactive_df")) {
-      return(attr(data_obj, "qr_id"))
-    }
-    # Fallback: scan widget$x for data attribute
-    if (!is.null(widget$x$data)) {
-      # DT converts to list of columns; check if we stashed the id
-      return(attr(widget$x, "qr_id"))
-    }
-  }
-
-  # Plotly: data stored in widget$x$visdat (list of environments)
+  # Plotly: data stored in widget$x$visdat (list of environments/functions)
   if (inherits(widget, "plotly")) {
     vis <- widget$x$visdat
     if (is.list(vis)) {
       for (v in vis) {
-        if (is.function(v)) {
-          df <- tryCatch(v(), error = function(e) NULL)
-        } else {
-          df <- v
-        }
+        df <- if (is.function(v)) tryCatch(v(), error = function(e) NULL) else v
         if (inherits(df, "quarto_reactive_df")) {
           return(attr(df, "qr_id"))
         }
       }
     }
-    # Fallback: check attrs
-    data_obj <- widget$x$source
-    if (inherits(data_obj, "quarto_reactive_df")) {
-      return(attr(data_obj, "qr_id"))
-    }
   }
 
-  # Leaflet: data may be stored in widget$x$calls
-  if (inherits(widget, "leaflet")) {
-    data_obj <- attr(widget, "qr_source_data")
-    if (!is.null(data_obj) && inherits(data_obj, "quarto_reactive_df")) {
-      return(attr(data_obj, "qr_id"))
+  # DT and Leaflet strip our class — return NULL so the NSE fallback is used.
+  NULL
+}
+
+#' Find the reactive store id by walking the unevaluated expression tree
+#'
+#' When widget constructors like datatable() strip our quarto_reactive_df
+#' class, we walk the original call expression to find any symbols or
+#' sub-expressions that evaluate to a quarto_reactive_df.
+#'
+#' @param expr An unevaluated R expression (from substitute()).
+#' @param env The environment in which to evaluate symbols.
+#' @return The qr_id string, or NULL if not found.
+#' @keywords internal
+.find_store_from_expr <- function(expr, env) {
+  if (is.symbol(expr)) {
+    # A bare variable name — evaluate it and check
+    obj <- tryCatch(eval(expr, env), error = function(e) NULL)
+    if (inherits(obj, "quarto_reactive_df")) {
+      return(attr(obj, "qr_id"))
+    }
+  } else if (is.call(expr)) {
+    # A function call — check each argument recursively
+    for (i in seq_along(expr)) {
+      result <- .find_store_from_expr(expr[[i]], env)
+      if (!is.null(result)) return(result)
     }
   }
-
   NULL
 }
