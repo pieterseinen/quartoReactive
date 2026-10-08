@@ -1,11 +1,12 @@
 ---
-title: "quartoReactive — Phase 1 Demo"
+title: "quartoReactive — Phase 2 Demo"
 format: html
 ---
 
 ```{r setup}
 #| include: false
 library(quartoReactive)
+library(plotly)
 library(DT)
 ```
 
@@ -25,6 +26,13 @@ interactive_df <- interactive_df(mtcars) |>
 render_inputs(interactive_df)
 ```
 
+## Scatter Plot
+
+```{r}
+reactive(plot_ly(interactive_df, x = ~mpg, y = ~hp, color = ~factor(cyl),
+                 type = "scatter", mode = "markers"))
+```
+
 ## Data Table
 
 ```{r}
@@ -36,6 +44,8 @@ reactive(datatable(interactive_df[, c("mpg", "cyl", "disp", "hp", "wt", "gear", 
 1. `interactive_df(mtcars)` creates a data.frame subclass carrying reactive metadata
 2. `filter_on()` declares filters without rendering them
 3. `render_inputs()` places the filter controls in the document
-4. `reactive(datatable(...))` wraps the DT widget and connects it to the data store
+4. `reactive(plot_ly(...))` wraps plotly and connects it to the data store
+5. `reactive(datatable(...))` wraps DT and connects it to the same store
 
 All filtering happens **client-side in the browser**. No server needed.
+Both widgets update simultaneously when any filter changes.

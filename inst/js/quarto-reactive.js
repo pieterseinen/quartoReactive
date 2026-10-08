@@ -1,42 +1,26 @@
 (function () {
   'use strict';
 
-  var QR_DEBUG = true;  // ← flip to false to silence diagnostics
-  function log(/* ...args */) {
-    if (QR_DEBUG) console.log.apply(console, ['[qr]'].concat(Array.prototype.slice.call(arguments)));
-  }
-  function warn(/* ...args */) {
-    console.warn.apply(console, ['[qr]'].concat(Array.prototype.slice.call(arguments)));
-  }
-
-  log('JS bundle loaded — defining classes');
-
-  // ════════════════════════════════════════════════════════════════
+  // ================================================================
   // ReactiveDataStore
   //
   // Holds the full dataset, manages filters, and notifies
   // subscribers when the filtered data changes.
-  // ════════════════════════════════════════════════════════════════
+  // ================================================================
   class ReactiveDataStore {
     constructor(data, meta) {
-      this._data          = Array.isArray(data) ? data : [];
-      this._meta          = meta || {};
-      this._filters       = new Map();   // variable → Set<value> (categorical)
-      this._rangeFilters  = new Map();   // variable → [min, max] (numeric)
-      this._subscribers   = [];
-      this._cache         = null;
-      log('ReactiveDataStore created —', this._data.length, 'rows,',
-          'columns:', Object.keys(this._data[0] || {}));
+      this._data         = Array.isArray(data) ? data : [];
+      this._meta         = meta || {};
+      this._filters      = new Map();
+      this._rangeFilters = new Map();
+      this._subscribers  = [];
+      this._cache        = null;
     }
 
-    // ── Filter API (called by inputs) ──────────────────────────
-
     setFilter(variable, values) {
-      log('setFilter("' + variable + '",', JSON.stringify(values) + ')');
       if (!values || values.length === 0) {
         this._filters.delete(variable);
       } else {
-        // Coerce to strings for consistent matching
         this._filters.set(variable, new Set(values.map(String)));
       }
       this._invalidate();
@@ -48,7 +32,6 @@
     }
 
     clearFilter(variable) {
-      log('clearFilter("' + variable + '")');
       this._filters.delete(variable);
       this._rangeFilters.delete(variable);
       this._invalidate();
@@ -60,233 +43,241 @@
       this._invalidate();
     }
 
-    // ── Data access (called by adapters) ───────────────────────
-
     getFilteredData() {
       if (this._cache) return this._cache;
+      var rows = this._data;
 
-      let rows = this._data;
-
-      // Apply categorical filters
-      for (const [variable, allowed] of this._filters) {
-        rows = rows.filter(r => {
-          const val = r[variable];
+      this._filters.forEach(function (allowed, variable) {
+        rows = rows.filter(function (r) {
+          var val = r[variable];
           return val != null && allowed.has(String(val));
         });
-      }
+      });
 
-      // Apply range filters
-      for (const [variable, [min, max]] of this._rangeFilters) {
-        rows = rows.filter(r => {
-          const v = r[variable];
-          return v != null && v >= min && v <= max;
+      this._rangeFilters.forEach(function (range, variable) {
+        rows = rows.filter(function (r) {
+          var v = r[variable];
+          return v != null && v >= range[0] && v <= range[1];
         });
-      }
+      });
 
       this._cache = rows;
       return rows;
     }
 
-    getFullData() {
-      return this._data;
-    }
+    getFullData() { return this._data; }
 
     getColumnValues(variable) {
-      return [...new Set(this._data.map(r => r[variable]))]
-        .filter(v => v != null)
+      return Array.from(new Set(this._data.map(function (r) { return r[variable]; })))
+        .filter(function (v) { return v != null; })
         .sort();
     }
 
     getActiveFilters() {
-      const result = {};
-      for (const [k, v] of this._filters) result[k] = [...v];
-      for (const [k, v] of this._rangeFilters) result[k] = v;
+      var result = {};
+      this._filters.forEach(function (v, k) { result[k] = Array.from(v); });
+      this._rangeFilters.forEach(function (v, k) { result[k] = v; });
       return result;
     }
 
-    // ── Subscription (called by adapters) ──────────────────────
-
     subscribe(callback) {
       this._subscribers.push(callback);
-      log('subscribe() — total subscribers now:', this._subscribers.length);
-      // Fire immediately with current data
       callback(this.getFilteredData(), this.getActiveFilters());
-      // Return unsubscribe function
-      return () => {
-        this._subscribers = this._subscribers.filter(cb => cb !== callback);
+      var self = this;
+      return function () {
+        self._subscribers = self._subscribers.filter(function (cb) { return cb !== callback; });
       };
     }
 
-    // ── Internal ───────────────────────────────────────────────
-
     _invalidate() {
       this._cache = null;
-      const filtered = this.getFilteredData();
-      const filters  = this.getActiveFilters();
-      log('_invalidate() — filters:', JSON.stringify(filters),
-          '— filtered', filtered.length, '/', this._data.length, 'rows',
-          '— notifying', this._subscribers.length, 'subscribers');
-      this._subscribers.forEach(cb => cb(filtered, filters));
+      var filtered = this.getFilteredData();
+      var filters  = this.getActiveFilters();
+      this._subscribers.forEach(function (cb) { cb(filtered, filters); });
     }
   }
 
-  // ════════════════════════════════════════════════════════════════
+  // ================================================================
+  // Shared: guarded widget initialisation
+  //
+  // Tries HTMLWidgets.addPostRenderHandler + a 300ms setTimeout
+  // fallback (the postRender callback may never fire when widgets
+  // render before our boot script registers the handler).
+  // ================================================================
+  function whenWidgetReady(initFn) {
+    var done = false;
+    function guard() {
+      if (done) return;
+      done = true;
+      initFn();
+    }
+    if (window.HTMLWidgets && HTMLWidgets.addPostRenderHandler) {
+      HTMLWidgets.addPostRenderHandler(guard);
+    }
+    setTimeout(guard, 300);
+  }
+
+  // ================================================================
   // DataTableAdapter
   //
   // Subscribes to a ReactiveDataStore and updates a DT/DataTables
   // widget when the filtered data changes.
-  // ════════════════════════════════════════════════════════════════
+  // ================================================================
   class DataTableAdapter {
     constructor(widgetId, storeId, columns) {
-      log('DataTableAdapter() — widgetId:', widgetId,
-          'storeId:', storeId, 'columns:', JSON.stringify(columns));
-
       this.widgetId = widgetId;
       this.columns  = columns;
       this.storeId  = storeId;
       this._dt      = null;
       this._ready   = false;
+      this._needsRowName = null;
 
-      const self = this;
+      var self = this;
       var retryCount = 0;
 
-      // Wait for htmlwidgets to finish rendering, then subscribe
-      function init() {
-        log('DataTableAdapter.init() called');
-        const wrapper = document.getElementById(widgetId);
-        if (!wrapper) {
-          warn('DT wrapper not found:', widgetId,
-               '— all IDs on page:', Array.from(document.querySelectorAll('[id]')).map(function(e) { return e.id; }).filter(function(id) { return id.indexOf('qr') >= 0 || id.indexOf('dt') >= 0 || id.indexOf('DT') >= 0 || id.indexOf('DataTables') >= 0 || id.indexOf('htmlwidget') >= 0; }));
-          return;
-        }
-        log('DataTableAdapter — wrapper found:', wrapper.tagName, wrapper.className);
+      whenWidgetReady(function () {
+        var wrapper = document.getElementById(widgetId);
+        if (!wrapper) return;
 
-        // DT (via htmlwidgets) stores the DataTable instance
-        // Try to find it via jQuery DataTables API
-        var tryConnect = function () {
+        (function tryConnect() {
           retryCount++;
           try {
-            var jqAvail = typeof $ !== 'undefined';
-            var dtAvail = jqAvail && $.fn && $.fn.DataTable;
-            if (!jqAvail) {
-              log('DataTableAdapter — jQuery not available yet (retry', retryCount + ')');
+            if (typeof $ === 'undefined' || !$.fn.DataTable) {
               if (retryCount < 50) setTimeout(tryConnect, 200);
-              else warn('DataTableAdapter — gave up waiting for jQuery after', retryCount, 'retries');
               return;
             }
             var table = $(wrapper).find('table');
-            var isInit = dtAvail && table.length && $.fn.DataTable.isDataTable(table);
-            log('DataTableAdapter — tryConnect #' + retryCount + ':',
-                'jQuery:', jqAvail, 'DataTable plugin:', !!dtAvail,
-                'table found:', table.length > 0, 'isDataTable:', isInit);
-
-            if (isInit) {
-              self._dt = table.DataTable();
+            if (table.length && $.fn.DataTable.isDataTable(table)) {
+              self._dt    = table.DataTable();
               self._ready = true;
-              log('DataTableAdapter — connected to DT instance');
+              self._needsRowName = self._dt.columns().count() > self.columns.length;
 
-              // Now subscribe to the store
               var store = window.__quartoReactive && window.__quartoReactive.stores[storeId];
               if (store) {
-                log('DataTableAdapter — subscribing to store', storeId);
-                store.subscribe(function (filteredData) {
-                  self._update(filteredData);
-                });
-              } else {
-                warn('DataTableAdapter — store not found:', storeId,
-                     '— available stores:', Object.keys(window.__quartoReactive ? window.__quartoReactive.stores : {}));
+                store.subscribe(function (filteredData) { self._update(filteredData); });
               }
-            } else {
-              // Retry — DT may not be initialized yet
-              if (retryCount < 50) setTimeout(tryConnect, 200);
-              else warn('DataTableAdapter — gave up waiting for DT init after', retryCount, 'retries');
+            } else if (retryCount < 50) {
+              setTimeout(tryConnect, 200);
             }
           } catch (e) {
-            warn('DataTableAdapter — tryConnect error:', e.message);
             if (retryCount < 50) setTimeout(tryConnect, 200);
           }
-        };
-
-        tryConnect();
-      }
-
-      // Strategy: try HTMLWidgets postRender AND a polling fallback.
-      // addPostRenderHandler may never fire if widgets rendered before
-      // our boot script ran (race condition with DOMContentLoaded order).
-      var _initDone = false;
-      function guardedInit() {
-        if (_initDone) return;
-        _initDone = true;
-        init();
-      }
-
-      var hwAvail = window.HTMLWidgets && HTMLWidgets.addPostRenderHandler;
-      log('DataTableAdapter — HTMLWidgets available:', !!hwAvail,
-          'readyState:', document.readyState);
-
-      if (hwAvail) {
-        HTMLWidgets.addPostRenderHandler(guardedInit);
-      }
-      // Always also poll as fallback — tryConnect retries if DT isn't ready yet
-      setTimeout(guardedInit, 300);
+        })();
+      });
     }
 
     _update(data) {
-      if (!this._ready || !this._dt) {
-        log('DataTableAdapter._update() — skipped (ready:', this._ready, 'dt:', !!this._dt + ')');
-        return;
-      }
-
-      log('DataTableAdapter._update() —', data.length, 'rows,',
-          'columns:', JSON.stringify(this.columns));
-
-      // Detect if DT has a row-names column (more columns in the table than
-      // in our data spec). DT prepends row names as column index 0.
-      var dtColCount = this._dt.columns().count();
-      var needsRowName = dtColCount > this.columns.length;
-      if (!this._loggedRowName) {
-        log('DataTableAdapter — DT columns:', dtColCount,
-            'data columns:', this.columns.length,
-            'needsRowName:', needsRowName);
-        this._loggedRowName = true;
-      }
-
-      // Log a sample row to check data shape
-      if (data.length > 0) {
-        var sampleRow = data[0];
-        var mapped = {};
-        this.columns.forEach(function(col) { mapped[col] = sampleRow[col]; });
-        log('DataTableAdapter — sample row mapped:', JSON.stringify(mapped));
-      }
-
+      if (!this._ready || !this._dt) return;
       this._dt.clear();
-
-      data.forEach(function(row, idx) {
-        // Build row array in column order
-        var rowArr = this.columns.map(function(col) {
+      var cols = this.columns;
+      var needsRowName = this._needsRowName;
+      data.forEach(function (row, idx) {
+        var rowArr = cols.map(function (col) {
           var val = row[col];
           return val != null ? val : '';
         });
-        // Prepend row name if DT expects one
         if (needsRowName) rowArr.unshift(idx + 1);
         this._dt.row.add(rowArr);
       }.bind(this));
-
       this._dt.draw();
-      log('DataTableAdapter._update() — draw complete');
     }
   }
 
-  // ════════════════════════════════════════════════════════════════
+  // ================================================================
+  // PlotlyAdapter
+  //
+  // Subscribes to a ReactiveDataStore and rebuilds Plotly traces
+  // when the filtered data changes. Supports single-trace and
+  // grouped (color) charts. Uses Plotly.react() for efficient
+  // in-place updates that preserve layout (axes, title, margins).
+  //
+  // Supported chart types: scatter, bar, line (type + mode from spec).
+  // ================================================================
+  class PlotlyAdapter {
+    constructor(divId, storeId, spec) {
+      this.divId  = divId;
+      this.spec   = spec;
+      this._layout = null;
+
+      var self = this;
+      var retryCount = 0;
+
+      whenWidgetReady(function () {
+        var div = document.getElementById(divId);
+        if (!div) return;
+
+        (function tryConnect() {
+          retryCount++;
+          if (div.data && div.layout) {
+            // Deep-copy layout so Plotly.react() doesn't mutate our reference
+            self._layout = JSON.parse(JSON.stringify(div.layout));
+
+            var store = window.__quartoReactive && window.__quartoReactive.stores[storeId];
+            if (store) {
+              store.subscribe(function (filteredData) { self._update(div, filteredData); });
+            }
+          } else if (retryCount < 50) {
+            setTimeout(tryConnect, 200);
+          }
+        })();
+      });
+    }
+
+    _update(div, data) {
+      var traces = this._buildTraces(data);
+      Plotly.react(div, traces, this._layout || div.layout || {});
+    }
+
+    _buildTraces(data) {
+      var spec = this.spec;
+
+      // --- No grouping: single trace ---
+      if (!spec.color) {
+        var trace = {
+          x:    data.map(function (r) { return r[spec.x]; }),
+          y:    data.map(function (r) { return r[spec.y]; }),
+          type: spec.type || 'scatter',
+          mode: spec.mode || 'markers'
+        };
+        if (spec.z)    trace.z      = data.map(function (r) { return r[spec.z]; });
+        if (spec.size)  trace.marker = { size: data.map(function (r) { return r[spec.size]; }) };
+        if (spec.text)  trace.text   = data.map(function (r) { return r[spec.text]; });
+        return [trace];
+      }
+
+      // --- Grouped by color: one trace per unique value ---
+      var groups = new Map();
+      data.forEach(function (r) {
+        var key = String(r[spec.color]);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(r);
+      });
+
+      var traces = [];
+      groups.forEach(function (rows, name) {
+        var trace = {
+          name: name,
+          x:    rows.map(function (r) { return r[spec.x]; }),
+          y:    rows.map(function (r) { return r[spec.y]; }),
+          type: spec.type || 'scatter',
+          mode: spec.mode || 'markers'
+        };
+        if (spec.z)    trace.z      = rows.map(function (r) { return r[spec.z]; });
+        if (spec.size)  trace.marker = { size: rows.map(function (r) { return r[spec.size]; }) };
+        if (spec.text)  trace.text   = rows.map(function (r) { return r[spec.text]; });
+        traces.push(trace);
+      });
+      return traces;
+    }
+  }
+
+  // ================================================================
   // Global namespace
-  // ════════════════════════════════════════════════════════════════
+  // ================================================================
   window.__quartoReactive = window.__quartoReactive || { stores: {} };
 
-  // Expose classes globally so boot scripts can instantiate them
   window.ReactiveDataStore = ReactiveDataStore;
   window.DataTableAdapter  = DataTableAdapter;
-
-  log('Classes exposed globally — ReactiveDataStore:', typeof window.ReactiveDataStore,
-      'DataTableAdapter:', typeof window.DataTableAdapter);
+  window.PlotlyAdapter     = PlotlyAdapter;
 
 })();
