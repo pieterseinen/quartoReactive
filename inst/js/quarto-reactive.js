@@ -240,6 +240,17 @@
       log('DataTableAdapter._update() —', data.length, 'rows,',
           'columns:', JSON.stringify(this.columns));
 
+      // Detect if DT has a row-names column (more columns in the table than
+      // in our data spec). DT prepends row names as column index 0.
+      var dtColCount = this._dt.columns().count();
+      var needsRowName = dtColCount > this.columns.length;
+      if (!this._loggedRowName) {
+        log('DataTableAdapter — DT columns:', dtColCount,
+            'data columns:', this.columns.length,
+            'needsRowName:', needsRowName);
+        this._loggedRowName = true;
+      }
+
       // Log a sample row to check data shape
       if (data.length > 0) {
         var sampleRow = data[0];
@@ -250,14 +261,16 @@
 
       this._dt.clear();
 
-      data.forEach(row => {
+      data.forEach(function(row, idx) {
         // Build row array in column order
-        const rowArr = this.columns.map(col => {
-          const val = row[col];
+        var rowArr = this.columns.map(function(col) {
+          var val = row[col];
           return val != null ? val : '';
         });
+        // Prepend row name if DT expects one
+        if (needsRowName) rowArr.unshift(idx + 1);
         this._dt.row.add(rowArr);
-      });
+      }.bind(this));
 
       this._dt.draw();
       log('DataTableAdapter._update() — draw complete');
