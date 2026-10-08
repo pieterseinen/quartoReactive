@@ -1,0 +1,72 @@
+/* quartoReactive — minimal default styles */
+
+/* ── Input container layout ──────────────────────────────────── */
+
+.qr-inputs-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.qr-inputs-stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.qr-input {
+  min-width: 120px;
+}
+
+.qr-input-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+  color: #333;
+}
+
+/* ── Radio inputs ────────────────────────────────────────────── */
+
+.qr-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.75rem;
+}
+
+.qr-radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.2rem 0;
+}
+
+.qr-radio-option input[type="radio"] {
+  accent-color: #2C7FB8;
+  margin: 0;
+}
+
+.qr-radio-option span {
+  user-select: none;
+}
+
+/* ── Dropdown inputs ─────────────────────────────────────────── */
+
+.qr-dropdown select {
+  width: 100%;
+  min-width: 150px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* ── General ─────────────────────────────────────────────────── */
+
+.qr-input + .qr-input {
+  /* Additional spacing between adjacent inputs when not in a flex container */
+}

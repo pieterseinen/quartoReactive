@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.o
+*.so
+*.dll
+man/*.Rd
+NAMESPACE
+!NAMESPACE
+*.tar.gz
+*.Rcheck/
+.DS_Store

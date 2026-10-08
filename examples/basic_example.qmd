@@ -1,0 +1,41 @@
+---
+title: "quartoReactive — Phase 1 Demo"
+format: html
+---
+
+```{r setup}
+#| include: false
+library(quartoReactive)
+library(DT)
+```
+
+## Define Data + Filters
+
+```{r}
+#| include: false
+interactive_df <- interactive_df(mtcars) |>
+  filter_on("cyl",  input = "radio", label = "Cylinders", show_all = TRUE) |>
+  filter_on("gear", input = "dropdown", label = "Gears") |>
+  filter_on("am",   input = "radio", label = "Transmission")
+```
+
+## Filters
+
+```{r}
+render_inputs(interactive_df)
+```
+
+## Data Table
+
+```{r}
+reactive(datatable(interactive_df[, c("mpg", "cyl", "disp", "hp", "wt", "gear", "am")]))
+```
+
+## How It Works
+
+1. `interactive_df(mtcars)` creates a data.frame subclass carrying reactive metadata
+2. `filter_on()` declares filters without rendering them
+3. `render_inputs()` places the filter controls in the document
+4. `reactive(datatable(...))` wraps the DT widget and connects it to the data store
+
+All filtering happens **client-side in the browser**. No server needed.

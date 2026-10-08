@@ -1,0 +1,25 @@
+Package: quartoReactive
+Title: Reactive Data-Driven Interactivity for Quarto HTML Documents
+Version: 0.1.0
+Authors@R:
+    person("Pieter", "Seinen", email = "p.seinen@ggdhvb.nl",
+           role = c("aut", "cre"))
+Description: Provides a pipe-friendly, visual-agnostic framework for adding
+    client-side interactivity to standalone Quarto HTML documents. Declare
+    filters on a data.frame with filter_on(), place input controls with
+    render_inputs(), and connect any supported htmlwidget (plotly, DT,
+    leaflet) via a universal reactive() wrapper. No server required —
+    everything runs in the browser.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+    htmltools (>= 0.5.0),
+    jsonlite
+Suggests:
+    plotly,
+    DT,
+    leaflet,
+    echarts4r,
+    knitr
+Config/roxygen2/version: 8.0.0
