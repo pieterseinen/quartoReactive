@@ -76,10 +76,14 @@ render_input <- function(data, variable) {
 
   # Boot script
   boot_js <- .js_on_ready(paste0(
-    '  var data = JSON.parse(document.getElementById("', id, '-data").textContent);\n',
+    '  console.log("[qr] Boot: creating store ', id, '");\n',
+    '  var dataEl = document.getElementById("', id, '-data");\n',
+    '  if (!dataEl) { console.error("[qr] Boot: #', id, '-data NOT found!"); return; }\n',
+    '  var data = JSON.parse(dataEl.textContent);\n',
     '  var meta = JSON.parse(document.getElementById("', id, '-meta").textContent);\n',
     '  window.__quartoReactive = window.__quartoReactive || { stores: {} };\n',
-    '  window.__quartoReactive.stores["', id, '"] = new ReactiveDataStore(data, meta);\n'
+    '  window.__quartoReactive.stores["', id, '"] = new ReactiveDataStore(data, meta);\n',
+    '  console.log("[qr] Boot: store ', id, ' registered, stores:", Object.keys(window.__quartoReactive.stores));\n'
   ))
 
   # Use htmltools::singleton so these are only emitted once per document
@@ -149,17 +153,21 @@ render_input <- function(data, variable) {
 
   # Boot script to connect radio to DataStore
   boot <- .js_on_ready(paste0(
+    '  console.log("[qr] Radio boot: connecting ', variable, ' to store ', store_id, '");\n',
     '  var store = window.__quartoReactive.stores["', store_id, '"];\n',
-    '  if (!store) return;\n',
+    '  if (!store) { console.error("[qr] Radio boot: store ', store_id, ' NOT found! Available:", Object.keys(window.__quartoReactive ? window.__quartoReactive.stores : {})); return; }\n',
     '  var container = document.getElementById("', div_id, '");\n',
-    '  if (!container) return;\n',
+    '  if (!container) { console.error("[qr] Radio boot: container #', div_id, ' NOT found!"); return; }\n',
+    '  console.log("[qr] Radio boot: store found, container found, attaching listener");\n',
     '  container.addEventListener("change", function(e) {\n',
     '    var val = e.target.value;\n',
+    '    console.log("[qr] Radio change: ', variable, ' =", val);\n',
     '    if (val === "__all__") store.clearFilter("', variable, '");\n',
     '    else store.setFilter("', variable, '", [val]);\n',
     '  });\n',
     '  // Apply default\n',
     '  var checked = container.querySelector("input:checked");\n',
+    '  console.log("[qr] Radio boot: default checked value =", checked ? checked.value : "(none)");\n',
     '  if (checked && checked.value !== "__all__") {\n',
     '    store.setFilter("', variable, '", [checked.value]);\n',
     '  }\n'
