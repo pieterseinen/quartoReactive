@@ -1,27 +1,29 @@
 Package: quartoReactive
-Title: Reactive Data-Driven Interactivity for Quarto HTML Documents
-Version: 0.1.0
+Title: Book-Wide Selections for Quarto HTML Documents
+Version: 0.2.0
 Authors@R:
     person("Pieter", "Seinen", email = "p.seinen@ggdhvb.nl",
            role = c("aut", "cre"))
-Description: Provides a pipe-friendly, visual-agnostic framework for adding
-    client-side interactivity to standalone Quarto HTML documents. Declare
-    filters on a data.frame with filter_on(), place input controls with
-    render_inputs(), and connect any supported htmlwidget (plotly, DT,
-    leaflet) via a universal reactive() wrapper. No server required —
-    everything runs in the browser.
+Description: Adds selection parameters to Quarto books and documents, without
+    a server. Inputs set a parameter (for example the municipalities to
+    compare); widgets on every page follow it. The selection persists across
+    the chapters of a book and is kept in the URL so it can be shared.
+    Standard widgets follow through 'crosstalk'; the package adds its own
+    widgets for cases crosstalk does not cover.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports:
+    crosstalk,
     htmltools (>= 0.5.0),
+    htmlwidgets,
     jsonlite
 Suggests:
-    plotly,
+    chromote,
     DT,
-    leaflet,
-    echarts4r,
-    knitr,
-    testthat (>= 3.0.0)
+    httpuv,
+    plotly,
+    testthat (>= 3.0.0),
+    withr
 Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3

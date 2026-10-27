@@ -1,0 +1,20 @@
+project:
+  type: book
+  pre-render: _setup.R
+
+book:
+  title: "Gemeenten in Hart voor Brabant"
+  chapters:
+    - index.qmd
+    - bevolking.qmd
+    - inkomen.qmd
+    - gezondheid.qmd
+
+execute:
+  echo: false
+  warning: false
+
+format:
+  html:
+    include-in-header: _qr-header.html
+    include-after-body: _qr-sidebar.html

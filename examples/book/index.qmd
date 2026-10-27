@@ -1,0 +1,19 @@
+# Inleiding {.unnumbered}
+
+```{r}
+source("_common.R")
+```
+
+Dit boek vergelijkt de 19 gemeenten van GGD-regio Hart voor Brabant op
+bevolking, inkomen en gezondheid. Kies hieronder of in de zijbalk welke
+gemeenten je wilt vergelijken: de keuze geldt voor alle hoofdstukken, en de
+link in de adresbalk bewaart de vergelijking om te delen.
+
+```{r}
+qr_select("gemeente", choices, label = "Vergelijk gemeenten")
+```
+
+Nederland, en waar beschikbaar de GGD-regio als geheel, staan altijd ter
+vergelijking in de grafieken. Zonder selectie tonen ze alle gemeenten.
+
+Bron: CBS StatLine (tabellen 70072ned, 86380NED en 86137NED).

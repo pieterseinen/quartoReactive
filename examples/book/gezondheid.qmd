@@ -1,0 +1,39 @@
+# Gezondheid
+
+```{r}
+source("_common.R")
+volw <- gezondheid[gezondheid$leeftijd == "18+", ]
+indicator <- function(cbs_code) {
+  d <- volw[volw$cbs_code == cbs_code, c("code", "naam", "waarde")]
+  d$naam <- sub("^GGD ", "", d$naam)
+  d
+}
+```
+
+## Ervaren gezondheid
+
+Aandeel volwassenen (18+) dat de eigen gezondheid goed of zeer goed noemt, 2024.
+
+```{r}
+qr_iconfill(indicator("D005390"), key = "code", value = "waarde", label = "naam",
+            param = "gemeente", digits = 1, color = "#8f8e88")
+```
+
+## Leefstijl en welzijn, 2024
+
+Percentage volwassenen (18+). Kleine gemeenten missen soms een cijfer; het CBS
+publiceert dan geen schatting.
+
+```{r}
+kolommen <- c(ervaren_gezondheid = "D005390", angst_depressie = "M008067",
+              overgewicht = "A048261", beweegrichtlijn = "M005759",
+              rokers = "M005702", mantelzorger = "M005565")
+k <- unique(volw[, c("code", "naam")])
+for (k_naam in names(kolommen)) {
+  k[[k_naam]] <- volw$waarde[match(paste(k$code, kolommen[[k_naam]]),
+                                   paste(volw$code, volw$cbs_code))]
+}
+tabel(k, colnames = c("code", "Regio", "Goed ervaren gezondheid", "Angst of depressie",
+                      "Overgewicht", "Voldoet aan beweegrichtlijn", "Rookt",
+                      "Mantelzorger"))
+```

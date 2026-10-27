@@ -1,0 +1,31 @@
+# Health
+
+```{r setup}
+#| include: false
+library(quartoReactive)
+library(plotly)
+library(DT)
+source("data.R")
+
+health <- health_data()
+latest <- health[health$year == 2024, c("code", "name", "good_health")]
+```
+
+An inline copy of the selector; it must stay in sync with the sidebar.
+
+```{r}
+#| echo: false
+qr_select("gemeente", choices, label = "Compare municipalities")
+```
+
+```{r}
+#| echo: false
+#| warning: false
+plot_ly(qr_data(health, "code", "gemeente"), x = ~year, y = ~good_health, color = ~name,
+        type = "scatter", mode = "lines+markers")
+```
+
+```{r}
+#| echo: false
+datatable(qr_data(latest, "code", "gemeente"), rownames = FALSE)
+```

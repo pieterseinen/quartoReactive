@@ -1,0 +1,6 @@
+.qr-input { margin-bottom: 1rem; }
+.qr-input-label { font-weight: 600; margin-bottom: .25rem; }
+.qr-option { display: block; font-size: .9rem; }
+.qr-input select { width: 100%; max-width: 30rem; }
+#qr-sidebar-inputs { padding: .75rem 1rem; border-top: 1px solid #dee2e6; }
+.qr-icon { display: inline-block; vertical-align: top; min-width: 8em; text-align: center; margin: 0 .5em 1em 0; }

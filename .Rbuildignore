@@ -3,5 +3,5 @@
 ^examples$
 ^ARCHITECTURE\.md$
 ^\.gitignore$
-^spike$
 ^data-raw$
+^README\.md$

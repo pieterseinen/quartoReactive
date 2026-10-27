@@ -1,0 +1,15 @@
+project:
+  type: book
+  pre-render: _setup.R
+
+book:
+  title: "Fixture: book-wide selection"
+  chapters:
+    - index.qmd
+    - health.qmd
+    - transit.qmd
+
+format:
+  html:
+    include-in-header: _qr-header.html
+    include-after-body: _qr-sidebar.html

@@ -1,0 +1,3 @@
+# The qr-state dependency is added from R (see qr_iconfill()) so its version
+# follows the package version.
+dependencies: []

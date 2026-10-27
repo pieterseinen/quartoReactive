@@ -1,0 +1,26 @@
+# Inkomen
+
+```{r}
+source("_common.R")
+```
+
+## Mediaan gestandaardiseerd inkomen
+
+Besteedbaar inkomen van particuliere huishoudens, gecorrigeerd voor de
+grootte en samenstelling van het huishouden (x 1 000 euro). 2025 is voorlopig.
+
+```{r}
+lijnen(inkomen, ~mediaan_gestand, "x 1 000 euro")
+```
+
+## Lage en hoge inkomens, 2024
+
+Aandeel huishoudens in de laagste en hoogste 20% van de landelijke
+inkomensverdeling. Landelijk is dat per definitie 20%.
+
+```{r}
+k <- inkomen[inkomen$jaar == 2024,
+             c("code", "naam", "laag_inkomen_pct", "hoog_inkomen_pct", "mediaan_gestand")]
+tabel(k, colnames = c("code", "Gemeente", "% laagste 20%", "% hoogste 20%",
+                      "Mediaan (x 1 000 euro)"))
+```

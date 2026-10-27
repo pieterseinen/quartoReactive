@@ -1,45 +1,33 @@
-# utils.R — Internal helpers for quartoReactive
+# Internal helpers
 
-# Null-coalescing operator
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-# Convert R value to JS literal string
-.as_js <- function(x) {
-  if (is.null(x)) "null"
-  else as.character(jsonlite::toJSON(x, auto_unbox = TRUE, null = "null"))
-}
-
-# Wrap JS code in a DOMContentLoaded listener
-.js_on_ready <- function(js_body) {
-  paste0(
-    'document.addEventListener("DOMContentLoaded", function() {\n',
-    js_body,
-    '\n});' 
-  )
-}
-
-# Auto-generate a unique id if none provided
-.auto_id <- function() {
-  paste0("qr-", paste0(sample(c(letters, 0:9), 8, replace = TRUE), collapse = ""))
-}
-
-# Detect column types from a data.frame
-.detect_column_types <- function(data) {
-  lapply(data, function(col) {
-    if (is.numeric(col)) "numeric"
-    else if (is.logical(col)) "logical"
-    else if (inherits(col, "Date") || inherits(col, "POSIXt")) "date"
-    else "categorical"
-  })
-}
-
-# Validate that object is a quarto_reactive_df
-.check_reactive_df <- function(x, arg_name = "data") {
-  if (!inherits(x, "quarto_reactive_df")) {
-    stop(
-      arg_name, " must be a quarto_reactive_df object. ",
-      "Did you forget to call interactive_df() first?",
-      call. = FALSE
-    )
+# Unique suffixes for element ids and radio names, without touching the RNG.
+.next_id <- local({
+  n <- 0
+  function(prefix) {
+    n <<- n + 1
+    paste0(prefix, "-", n)
   }
+})
+
+.check_param <- function(param) {
+  if (!is.character(param) || length(param) != 1 || is.na(param) ||
+      !grepl("^[A-Za-z][A-Za-z0-9_]*$", param)) {
+    stop("`param` must be a single name of letters, digits and underscores, ",
+         "starting with a letter.", call. = FALSE)
+  }
+  invisible(param)
+}
+
+.check_column <- function(data, column, arg) {
+  if (!is.character(column) || length(column) != 1 || !column %in% names(data)) {
+    stop("`", arg, "` must name a column of `data`.", call. = FALSE)
+  }
+  invisible(column)
+}
+
+# JSON for inline <script>s; "</" is escaped so a value cannot close the tag.
+.json <- function(x, ...) {
+  gsub("</", "<\\/", as.character(jsonlite::toJSON(x, ...)), fixed = TRUE)
 }
