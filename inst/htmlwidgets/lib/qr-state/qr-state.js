@@ -60,11 +60,17 @@
     slots[param] = next;
   }
 
+  // At most `max` keys (if configured); later keys are dropped.
+  function limit(param, keys) {
+    var max = config[param] && config[param].max;
+    return max ? keys.slice(0, max) : keys;
+  }
+
   function resolve(param) {
     if (param in values) return;
     var saved = readStorage();
-    values[param] = readUrl(param) || saved.values[param] ||
-      (config[param] && config[param].default) || [];
+    values[param] = limit(param, readUrl(param) || saved.values[param] ||
+      (config[param] && config[param].default) || []);
     slots[param] = saved.slots[param] || {};
     assignSlots(param);
   }
@@ -75,8 +81,13 @@
     namespace: function (id) { namespace = id || ''; stored = null; },
     configure: function (param, options) { config[param] = options || {}; },
     get: function (param) { resolve(param); return values[param].slice(); },
+    // Keys keep the order in which they were selected (inputs report them in
+    // display order), so over `max` the newest are dropped.
     set: function (param, keys) {
-      values[param] = keys.slice();
+      resolve(param);
+      var kept = values[param].filter(function (k) { return keys.indexOf(k) >= 0; });
+      keys.forEach(function (k) { if (kept.indexOf(k) < 0) kept.push(k); });
+      values[param] = limit(param, kept);
       assignSlots(param);
       writeStorage();
       writeUrl();
@@ -93,6 +104,7 @@
     },
     // Keys that stay visible whatever is selected (e.g. a national benchmark).
     always: function (param) { return (config[param] && config[param].always) || []; },
+    max: function (param) { return (config[param] && config[param].max) || null; },
     // What a widget should show: the selection plus `always`, or null for
     // "everything" when nothing is selected.
     visible: function (param, keys) {
@@ -116,6 +128,12 @@
     var param  = el.dataset.qrParam;
     var select = el.querySelector('select');
     var boxes  = Array.from(el.querySelectorAll('input'));
+    var max    = qrState.max(param);
+
+    if (select && select.dataset.qrSearch !== undefined && window.TomSelect) {
+      bootSearch(el, param, select, max);
+      return;
+    }
 
     function read() {
       if (select) return Array.from(select.selectedOptions).map(function (o) { return o.value; });
@@ -125,7 +143,85 @@
     el.addEventListener('change', function () { qrState.set(param, read()); });
     qrState.subscribe(param, function (keys) {
       if (select) Array.from(select.options).forEach(function (o) { o.selected = keys.indexOf(o.value) >= 0; });
-      else boxes.forEach(function (b) { b.checked = keys.indexOf(b.value) >= 0; });
+      else boxes.forEach(function (b) {
+        b.checked = keys.indexOf(b.value) >= 0;
+        // At the maximum, only deselecting is possible.
+        if (b.type === 'checkbox') b.disabled = !b.checked && max !== null && keys.length >= max;
+      });
+    });
+  }
+
+  // A <select> with data-qr-search becomes a Tom Select: type to filter,
+  // chips with a remove button for multiple choice.
+  function bootSearch(el, param, select, max) {
+    var multiple = select.multiple;
+    var ts = new TomSelect(select, {
+      plugins: multiple ? ['remove_button'] : [],
+      maxItems: multiple ? max : 1,
+      placeholder: select.dataset.qrPlaceholder || '',
+      hidePlaceholder: false,
+      closeAfterSelect: !multiple
+    });
+    var syncing = false;
+    ts.on('change', function () {
+      if (syncing) return;
+      var v = ts.getValue();
+      qrState.set(param, Array.isArray(v) ? v : (v ? [v] : []));
+    });
+    qrState.subscribe(param, function (keys) {
+      syncing = true;
+      ts.setValue(multiple ? keys : keys.slice(0, 1), true);
+      syncing = false;
+    });
+  }
+
+  // ---- Selection bar: chips for the current selection --------------------
+
+  function bootBar(el) {
+    if (el.dataset.qrBooted) return;
+    el.dataset.qrBooted = 'true';
+    var param  = el.dataset.qrBar;
+    var labels = JSON.parse(el.dataset.qrLabels || '{}');
+    var list   = el.querySelector('.qr-chips');
+    var remove = el.dataset.qrRemove || 'Remove';
+
+    function chip(key) {
+      var li = document.createElement('li');
+      li.className = 'qr-chip';
+      li.dataset.key = key;
+      var color = qrState.color(param, key);
+      if (color) li.style.setProperty('--qr-chip-color', color);
+      var text = document.createElement('span');
+      text.textContent = labels[key] || key;
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = '×';
+      button.setAttribute('aria-label', remove + ' ' + (labels[key] || key));
+      button.addEventListener('click', function () {
+        qrState.set(param, qrState.get(param).filter(function (k) { return k !== key; }));
+      });
+      li.appendChild(text);
+      li.appendChild(button);
+      return li;
+    }
+
+    // Quarto's fixed header (narrow screens) slides in and out on scroll:
+    // stick just below it while it shows.
+    var header = document.getElementById('quarto-header');
+    if (el.classList.contains('qr-sticky') && header) {
+      var place = function () {
+        el.style.top = Math.max(0, header.getBoundingClientRect().bottom) + 'px';
+      };
+      window.addEventListener('scroll', place, { passive: true });
+      window.addEventListener('resize', place);
+      header.addEventListener('transitionend', place);
+      place();
+    }
+
+    qrState.subscribe(param, function (keys) {
+      list.textContent = '';
+      el.classList.toggle('qr-empty', keys.length === 0);
+      keys.forEach(function (k) { list.appendChild(chip(k)); });
     });
   }
 
@@ -194,6 +290,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     var inputs = Array.from(document.querySelectorAll('[data-qr-param]'));
+    var bars = Array.from(document.querySelectorAll('[data-qr-bar]'));
     var params = Object.keys(config);
     inputs.forEach(function (el) {
       if (params.indexOf(el.dataset.qrParam) < 0) params.push(el.dataset.qrParam);
@@ -202,6 +299,7 @@
     writeStorage();
     writeUrl();
     inputs.forEach(bootInput);
+    bars.forEach(bootBar);
     if (window.crosstalk) params.forEach(bridge);
   });
 })();

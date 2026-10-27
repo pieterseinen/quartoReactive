@@ -35,12 +35,25 @@ everything runs in the browser from the rendered HTML.
   chapters is a full page load; the state comes back from storage.
 - **API** for widgets: `get`, `set`, `subscribe` (fires immediately, returns an
   unsubscribe function), `always`, `visible` (selection plus `always`, or `null`
-  for "show everything"), `color`.
+  for "show everything"), `color`, `max`.
+- **Selection order**: `set` keeps keys in the order they were selected
+  (inputs report display order), so the URL reads in that order and `max`
+  drops the newest keys. `max` is enforced in the store as well as by each
+  input, because custom widgets call `set` directly.
 - **Inputs** are plain markup with `data-qr-param`; the store wires them both
-  ways on `DOMContentLoaded`.
+  ways on `DOMContentLoaded`. A `<select data-qr-search>` is upgraded to Tom
+  Select (bundled, 2.6.2) when the library is on the page, else it stays a
+  plain list box. At `max`, unchecked checkboxes are disabled.
+- **Selection bar** (`data-qr-bar`): chips with label, colour and a remove
+  button. When sticky, it tracks the bottom of Quarto's fixed header, which
+  slides in and out on narrow screens.
 - **Colour slots** (only with `qr_param(colors = )`): a newly selected key takes
   the lowest free slot and keeps it while selected, so changing the selection
   never repaints other series. Slots are stored with the selection.
+
+`qr_book_setup()` writes the include files by inlining the store plus every
+htmlDependency of the `sidebar` and `top` content (e.g. Tom Select), because
+include files are pasted into each page as is.
 
 ### Standard widgets: crosstalk as the bridge
 
@@ -99,8 +112,7 @@ history (`spike/`, commit ff3344e).
 ## Roadmap
 
 1. ~~Core: store, bridge, inputs, book setup, icon fill, tests~~ (0.2.0)
-2. Searchable multi-select for long lists, a "showing: A, B" bar for small
-   screens, maximum selection size
+2. ~~Searchable multi-select, selection bar, maximum selection size~~ (0.3.0)
 3. Sunburst widget; custom icons for the icon fill
 4. Map selector from municipality polygons (`inst/extdata/hart_voor_brabant.gpkg`)
 5. Robustness: leaflet, widgets in tabsets, `quarto preview`, documentation site

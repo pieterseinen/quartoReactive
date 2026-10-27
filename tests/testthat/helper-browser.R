@@ -72,6 +72,16 @@ browser_tab <- function(base, env = parent.frame()) {
       Sys.sleep(0.8)
     },
     eval = function(js) b$Runtime$evaluate(js, returnByValue = TRUE)$result$value,
+    # Types into the focused element and presses Enter, as a reader would.
+    type = function(text) {
+      b$Input$insertText(text)
+      Sys.sleep(0.3)
+      for (type in c("keyDown", "keyUp")) {
+        b$Input$dispatchKeyEvent(type = type, key = "Enter", code = "Enter",
+                                 windowsVirtualKeyCode = 13)
+      }
+      Sys.sleep(0.8)
+    },
     errors = function() errors
   )
 }
@@ -85,6 +95,10 @@ page_snapshot <- function(tab) {
       storage: Object.keys(sessionStorage),
       sidebar: vals("#qr-sidebar-inputs input:checked"),
       inline: document.querySelector("main .qr-input select") ? vals("main .qr-input select option:checked") : null,
+      search: document.querySelector("main .ts-wrapper") ?
+        Array.from(document.querySelectorAll("main .ts-control .item")).map(function (e) { return e.dataset.value; }) : null,
+      bar: Array.from(document.querySelectorAll(".qr-selection-bar .qr-chip")).map(function (e) { return e.dataset.key; }),
+      disabled: document.querySelectorAll("#qr-sidebar-inputs input:disabled").length,
       icons: Array.from(document.querySelectorAll(".qr-icon")).map(function (f) { return f.dataset.key; }),
       plots: Array.from(document.querySelectorAll(".plotly.html-widget")).map(function (div) {
         var shown = [];
@@ -108,7 +122,9 @@ page_snapshot <- function(tab) {
   s <- jsonlite::fromJSON(tab$eval(js), simplifyVector = FALSE)
   sorted <- function(x) sort(as.character(unlist(x)))
   s$storage <- sorted(s$storage)
-  for (part in c("sidebar", "inline", "icons")) if (!is.null(s[[part]])) s[[part]] <- sorted(s[[part]])
+  for (part in c("sidebar", "inline", "search", "bar", "icons")) {
+    if (!is.null(s[[part]])) s[[part]] <- sorted(s[[part]])
+  }
   for (part in c("plots", "axes", "tables")) s[[part]] <- lapply(s[[part]], sorted)
   s
 }

@@ -11,8 +11,10 @@ library(quartoReactive)
 qr_book_setup(
   params  = list(gemeente = qr_param(default = c("GM0855", "GM0796"),
                                      always = "NL01",
-                                     colors = c("#2a78d6", "#eb6834", "#1baf7a"))),
-  sidebar = qr_checkbox("gemeente", choices, label = "Gemeenten")
+                                     colors = c("#2a78d6", "#eb6834", "#1baf7a"),
+                                     max = 3)),
+  sidebar = qr_select("gemeente", choices, label = "Gemeenten"),  # searchable
+  top     = qr_selection_bar("gemeente", choices)                 # every chapter
 )
 ```
 

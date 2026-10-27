@@ -26,3 +26,19 @@ test_that("a _quarto.yml without the includes gets a warning", {
                "    include-after-body: _qr-sidebar.html"), file.path(dir, "_quarto.yml"))
   expect_no_warning(qr_book_setup(list(g = qr_param()), dir = dir))
 })
+
+test_that("libraries used by sidebar and top content are inlined", {
+  dir <- withr::local_tempdir()
+  choices <- c(A = "a", B = "b")
+  paths <- qr_book_setup(list(g = qr_param()), sidebar = qr_select("g", choices),
+                         top = qr_selection_bar("g", choices), dir = dir)
+  header <- readLines(paths[1])
+  expect_true(any(grepl("Tom Select v2.6.2", header, fixed = TRUE)))
+  expect_identical(sum(grepl("if (window.qrState) return", header, fixed = TRUE)), 1L)
+  body <- paste(readLines(paths[2]), collapse = "\n")
+  expect_match(body, 'id="qr-top"', fixed = TRUE)
+  expect_match(body, 'data-qr-bar="g"', fixed = TRUE)
+
+  plain <- qr_book_setup(list(g = qr_param()), sidebar = qr_checkbox("g", choices), dir = dir)
+  expect_false(any(grepl("Tom Select v2.6.2", readLines(plain[1]), fixed = TRUE)))
+})

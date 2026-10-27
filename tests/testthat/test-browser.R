@@ -20,10 +20,16 @@ expect_page_shows <- function(tab, selection, step) {
   selection <- sort(selection)
 
   expect_identical(s$sidebar, selection, label = paste(step, "sidebar"))
-  expect_identical(s$url, paste0("?gemeente=", paste(selection, collapse = ",")),
+  # The URL lists keys in selection order.
+  expect_identical(sort(strsplit(sub("^\\?gemeente=", "", s$url), ",")[[1]]), selection,
                    label = paste(step, "url"))
   expect_identical(s$storage, "qr-state:fixture", label = paste(step, "storage key"))
+  expect_identical(s$bar, selection, label = paste(step, "selection bar"))
+  # max = 4: at the maximum, the unchecked boxes are disabled.
+  expect_identical(s$disabled, if (length(selection) >= 4) nrow(municipalities) - 4L else 0L,
+                   label = paste(step, "disabled checkboxes"))
   if (!is.null(s$inline)) expect_identical(s$inline, selection, label = paste(step, "inline input"))
+  if (!is.null(s$search)) expect_identical(s$search, selection, label = paste(step, "search chips"))
   if (length(s$icons) || grepl("transit", step)) expect_identical(s$icons, codes, label = paste(step, "icons"))
   for (i in seq_along(s$plots)) expect_identical(s$plots[[i]], names, label = paste(step, "plot", i))
   for (i in seq_along(s$axes)) expect_identical(s$axes[[i]], names, label = paste(step, "axis", i))
@@ -53,14 +59,31 @@ test_that("a selection follows the reader through the book", {
   tab$go("health.html")
   expect_page_shows(tab, c("GM9003", "GM9005", "GM9007"), "5. back to health")
 
-  tab$run('(function () { var s = document.querySelector("main .qr-input select");
-    Array.from(s.options).forEach(function (o) { o.selected = o.value === "GM9008"; });
-    s.dispatchEvent(new Event("change", { bubbles: true })); })()')
-  expect_page_shows(tab, "GM9008", "6. health, inline select")
+  tab$run('document.querySelector("main .ts-control input").focus()')
+  tab$type("Zand")
+  expect_page_shows(tab, c("GM9003", "GM9005", "GM9007", "GM9008"), "6. health, search select")
 
   tab$go("transit.html")
-  expect_page_shows(tab, "GM9008", "7. transit after inline change")
+  expect_page_shows(tab, c("GM9003", "GM9005", "GM9007", "GM9008"), "7. transit after search")
 
+  tab$run('document.querySelector(".qr-chip[data-key=\\"GM9003\\"] button").click()')
+  expect_page_shows(tab, c("GM9005", "GM9007", "GM9008"), "8. transit, chip removed")
+
+  expect_identical(tab$errors(), character())
+})
+
+test_that("max caps every way of selecting", {
+  tab <- browser_tab(base)
+  tab$go("health.html?gemeente=GM9001,GM9002,GM9003,GM9004,GM9005")
+  expect_page_shows(tab, c("GM9001", "GM9002", "GM9003", "GM9004"), "9. link with 5 keys keeps 4")
+
+  tab$run('document.querySelector("main .ts-control input").focus()')
+  tab$type("Zand")
+  expect_page_shows(tab, c("GM9001", "GM9002", "GM9003", "GM9004"), "10. search at max adds nothing")
+
+  # Custom widgets (e.g. a map selector) call the store directly.
+  tab$run('qrState.set("gemeente", ["GM9006", "GM9001", "GM9002", "GM9003", "GM9004", "GM9005"])')
+  expect_page_shows(tab, c("GM9001", "GM9002", "GM9003", "GM9004"), "10b. qrState.set keeps the oldest 4")
   expect_identical(tab$errors(), character())
 })
 
@@ -91,19 +114,21 @@ test_that("selected keys keep their colour while the selection changes", {
   tab$go("transit.html")  # slots survive navigation, also in our own widget
   expect_identical(icon_color("GM9004"), "#aa0000")
   expect_identical(icon_color("GM9002"), "#00aa00")
+  chip_color <- tab$eval('document.querySelector(".qr-chip[data-key=\\"GM9004\\"]").style.getPropertyValue("--qr-chip-color")')
+  expect_identical(chip_color, "#aa0000")
   expect_identical(tab$errors(), character())
 })
 
 test_that("a shared link opens with its selection, and empty means everything", {
   tab <- browser_tab(base)
   tab$go("transit.html?gemeente=GM9004,GM9006")
-  expect_page_shows(tab, c("GM9004", "GM9006"), "8. transit from shared link")
+  expect_page_shows(tab, c("GM9004", "GM9006"), "11. transit from shared link")
 
   click_sidebar(tab, c("GM9004", "GM9006"))
-  expect_page_shows(tab, character(), "9. transit, empty selection")
+  expect_page_shows(tab, character(), "12. transit, empty selection")
 
   tab$go("health.html")
-  expect_page_shows(tab, character(), "10. health, empty selection")
+  expect_page_shows(tab, character(), "13. health, empty selection")
 
   expect_identical(tab$errors(), character())
 })

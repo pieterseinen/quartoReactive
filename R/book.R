@@ -19,8 +19,10 @@
 #' ```
 #'
 #' @inheritParams qr_config
-#' @param sidebar Optional input, such as [qr_checkbox()], shown in the book
+#' @param sidebar Optional input, such as [qr_select()], shown in the book
 #'   sidebar on every page.
+#' @param top Optional content shown at the top of every chapter, below its
+#'   title, typically a [qr_selection_bar()].
 #' @param id Storage id that keeps this book's selection apart from other
 #'   books on the same website. Defaults to the name of the book's folder.
 #' @param dir The book's project folder.
@@ -30,34 +32,55 @@
 #' @examples
 #' dir <- tempfile()
 #' dir.create(dir)
+#' choices <- c(Tilburg = "GM0855", Oss = "GM0828")
 #' qr_book_setup(
 #'   params  = list(gemeente = qr_param(default = "GM0855", always = "NL01")),
-#'   sidebar = qr_checkbox("gemeente", c(Tilburg = "GM0855", Oss = "GM0828")),
+#'   sidebar = qr_select("gemeente", choices),
+#'   top     = qr_selection_bar("gemeente", choices),
 #'   dir     = dir
 #' )
 #' list.files(dir)
-qr_book_setup <- function(params, sidebar = NULL, id = NULL, dir = ".") {
+qr_book_setup <- function(params, sidebar = NULL, top = NULL, id = NULL, dir = ".") {
   id <- id %||% basename(normalizePath(dir, winslash = "/"))
-  pkg_file <- function(...) system.file("htmlwidgets", "lib", "qr-state", ..., package = "quartoReactive")
 
+  # The include files are pasted into every page as is, so the store and the
+  # libraries the sidebar and top content need (e.g. Tom Select) are inlined.
+  deps <- htmltools::resolveDependencies(c(
+    list(qr_dependency()), htmltools::findDependencies(htmltools::tagList(sidebar, top))
+  ))
   header <- c(
-    "<style>", readLines(pkg_file("qr-state.css")), "</style>",
-    "<script>", readLines(pkg_file("qr-state.js")), .config_js(params, id), "</script>"
+    unlist(lapply(deps, .inline_dependency)),
+    "<script>", .config_js(params, id), "</script>"
   )
 
-  # Quarto's sidebar is built after the body, so the input is moved into it
-  # by script. Without a sidebar (e.g. on narrow screens) it stays at the end
-  # of the page.
-  body <- if (is.null(sidebar)) character() else c(
-    '<div id="qr-sidebar-inputs">', as.character(sidebar), "</div>",
-    "<script>",
-    "(function () {",
-    "  var el = document.getElementById('qr-sidebar-inputs');",
-    "  var sidebar = document.querySelector('#quarto-sidebar .sidebar-menu-container') ||",
-    "                document.getElementById('quarto-sidebar');",
-    "  if (sidebar) sidebar.appendChild(el);",
-    "})();",
-    "</script>"
+  # Quarto builds the sidebar and title block before the body includes, so
+  # the content is moved into place by script. Without a sidebar (e.g. on
+  # narrow screens) the input stays at the end of the page.
+  body <- c(
+    character(),
+    if (!is.null(top)) c(
+      '<div id="qr-top">', as.character(top), "</div>",
+      "<script>",
+      "(function () {",
+      "  var el = document.getElementById('qr-top');",
+      "  var main = document.querySelector('main#quarto-document-content') || document.querySelector('main');",
+      "  if (!main) return;",
+      "  var title = main.querySelector('#title-block-header');",
+      "  if (title) title.after(el); else main.prepend(el);",
+      "})();",
+      "</script>"
+    ),
+    if (!is.null(sidebar)) c(
+      '<div id="qr-sidebar-inputs">', as.character(sidebar), "</div>",
+      "<script>",
+      "(function () {",
+      "  var el = document.getElementById('qr-sidebar-inputs');",
+      "  var sidebar = document.querySelector('#quarto-sidebar .sidebar-menu-container') ||",
+      "                document.getElementById('quarto-sidebar');",
+      "  if (sidebar) sidebar.appendChild(el);",
+      "})();",
+      "</script>"
+    )
   )
 
   paths <- file.path(dir, c("_qr-header.html", "_qr-sidebar.html"))
@@ -65,6 +88,19 @@ qr_book_setup <- function(params, sidebar = NULL, id = NULL, dir = ".") {
   writeLines(body, paths[2], useBytes = TRUE)
   .check_quarto_yml(dir)
   invisible(paths)
+}
+
+# An htmlDependency's stylesheets and scripts as inline <style>/<script> lines.
+.inline_dependency <- function(dep) {
+  dir <- if (!is.null(dep$package)) system.file(dep$src$file, package = dep$package) else dep$src$file
+  read <- function(files) {
+    files <- unlist(lapply(files, function(f) if (is.list(f)) f$src else f))
+    unlist(lapply(file.path(dir, files), readLines, warn = FALSE, encoding = "UTF-8"))
+  }
+  c(
+    if (length(dep$stylesheet)) c("<style>", read(dep$stylesheet), "</style>"),
+    if (length(dep$script)) c("<script>", read(dep$script), "</script>")
+  )
 }
 
 # Warn when the book does not include the files we just wrote.

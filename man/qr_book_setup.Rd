@@ -4,13 +4,16 @@
 \alias{qr_book_setup}
 \title{Set up selection parameters for a Quarto book}
 \usage{
-qr_book_setup(params, sidebar = NULL, id = NULL, dir = ".")
+qr_book_setup(params, sidebar = NULL, top = NULL, id = NULL, dir = ".")
 }
 \arguments{
 \item{params}{Named list of \code{\link[=qr_param]{qr_param()}}s; names are the parameter names.}
 
-\item{sidebar}{Optional input, such as \code{\link[=qr_checkbox]{qr_checkbox()}}, shown in the book
+\item{sidebar}{Optional input, such as \code{\link[=qr_select]{qr_select()}}, shown in the book
 sidebar on every page.}
+
+\item{top}{Optional content shown at the top of every chapter, below its
+title, typically a \code{\link[=qr_selection_bar]{qr_selection_bar()}}.}
 
 \item{id}{Storage id that keeps this book's selection apart from other
 books on the same website. Defaults to the name of the book's folder.}
@@ -44,9 +47,11 @@ format:
 \examples{
 dir <- tempfile()
 dir.create(dir)
+choices <- c(Tilburg = "GM0855", Oss = "GM0828")
 qr_book_setup(
   params  = list(gemeente = qr_param(default = "GM0855", always = "NL01")),
-  sidebar = qr_checkbox("gemeente", c(Tilburg = "GM0855", Oss = "GM0828")),
+  sidebar = qr_select("gemeente", choices),
+  top     = qr_selection_bar("gemeente", choices),
   dir     = dir
 )
 list.files(dir)

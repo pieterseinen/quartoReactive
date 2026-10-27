@@ -10,7 +10,8 @@ gemeenten je wilt vergelijken: de keuze geldt voor alle hoofdstukken, en de
 link in de adresbalk bewaart de vergelijking om te delen.
 
 ```{r}
-qr_select("gemeente", choices, label = "Vergelijk gemeenten")
+qr_select("gemeente", choices, label = "Vergelijk gemeenten (maximaal 8)",
+          placeholder = "Zoek een gemeente")
 ```
 
 Nederland, en waar beschikbaar de GGD-regio als geheel, staan altijd ter

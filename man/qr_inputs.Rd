@@ -7,7 +7,15 @@
 \alias{qr_radio}
 \title{Inputs that change a selection parameter}
 \usage{
-qr_select(param, choices, label = param, multiple = TRUE, size = NULL)
+qr_select(
+  param,
+  choices,
+  label = param,
+  multiple = TRUE,
+  search = TRUE,
+  placeholder = NULL,
+  size = NULL
+)
 
 qr_checkbox(param, choices, label = param)
 
@@ -23,7 +31,13 @@ qr_radio(param, choices, label = param)
 
 \item{multiple}{Allow more than one choice.}
 
-\item{size}{Number of visible rows; defaults to up to 8.}
+\item{search}{Make the list searchable (type to filter, selected choices as
+removable chips). Uses the bundled Tom Select library; \code{FALSE} gives a
+plain list box.}
+
+\item{placeholder}{Text shown in the search field.}
+
+\item{size}{Rows shown by the plain list box; defaults to up to 8.}
 }
 \value{
 An HTML tag.
@@ -35,10 +49,13 @@ the book sidebar (see \code{\link[=qr_book_setup]{qr_book_setup()}}).
 }
 \details{
 \itemize{
-\item \code{qr_select()}: a list box, multiple choice by default.
+\item \code{qr_select()}: a searchable drop-down, multiple choice by default. Suited
+to long lists, such as all municipalities.
 \item \code{qr_checkbox()}: a checkbox per choice, multiple choice.
 \item \code{qr_radio()}: a radio button per choice, one choice.
 }
+
+The parameter's \code{max} (see \code{\link[=qr_param]{qr_param()}}) applies to every input.
 }
 \examples{
 choices <- c(Tilburg = "GM0855", Oss = "GM0828", Vught = "GM0865")

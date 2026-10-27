@@ -4,7 +4,12 @@
 \alias{qr_param}
 \title{Configure a selection parameter}
 \usage{
-qr_param(default = character(), always = character(), colors = NULL)
+qr_param(
+  default = character(),
+  always = character(),
+  colors = NULL,
+  max = NULL
+)
 }
 \arguments{
 \item{default}{Keys selected on a reader's first visit. Empty means nothing
@@ -18,6 +23,10 @@ free colour and keeps it while it stays selected, so adding or removing a
 key never repaints the others. Applied to plotly traces that hold a
 single key (such as one line per municipality) and to the package's own
 widgets. \code{always} keys keep the colours given in R.}
+
+\item{max}{Optional maximum number of selected keys. Inputs stop accepting
+more, and a longer selection from a link keeps its first \code{max} keys.
+With \code{colors}, a \code{max} of at most \code{length(colors)} keeps colours unique.}
 }
 \value{
 A \code{qr_param} object.
@@ -30,5 +39,5 @@ single document).
 }
 \examples{
 qr_param(default = c("GM0855", "GM0796"), always = "NL01",
-         colors = c("#2a78d6", "#eb6834", "#1baf7a"))
+         colors = c("#2a78d6", "#eb6834", "#1baf7a"), max = 3)
 }

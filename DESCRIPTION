@@ -1,9 +1,11 @@
 Package: quartoReactive
 Title: Book-Wide Selections for Quarto HTML Documents
-Version: 0.2.0
-Authors@R:
+Version: 0.3.0
+Authors@R: c(
     person("Pieter", "Seinen", email = "p.seinen@ggdhvb.nl",
-           role = c("aut", "cre"))
+           role = c("aut", "cre")),
+    person("Tom Select contributors", role = c("ctb", "cph"),
+           comment = "Tom Select library in inst/htmlwidgets/lib/tom-select (Apache-2.0)"))
 Description: Adds selection parameters to Quarto books and documents, without
     a server. Inputs set a parameter (for example the municipalities to
     compare); widgets on every page follow it. The selection persists across

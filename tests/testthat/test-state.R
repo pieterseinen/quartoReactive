@@ -38,3 +38,11 @@ test_that("colors are optional and validated", {
   expect_error(qr_param(colors = 1), "colors")
   expect_output(print(qr_param(colors = c("red", "blue"))), "colors:  red, blue")
 })
+
+test_that("max is validated and written as a number", {
+  expect_identical(qr_param(max = 3)$max, 3L)
+  expect_match(.config_js(list(g = qr_param(max = 3))), '"max":3}', fixed = TRUE)
+  expect_error(qr_param(max = 0), "max")
+  expect_error(qr_param(max = 1.5), "max")
+  expect_error(qr_param(default = c("A", "B"), max = 1), "default")
+})

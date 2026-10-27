@@ -4,9 +4,12 @@
 #' also across the chapters of a book. Inputs can be placed in a chunk or in
 #' the book sidebar (see [qr_book_setup()]).
 #'
-#' * `qr_select()`: a list box, multiple choice by default.
+#' * `qr_select()`: a searchable drop-down, multiple choice by default. Suited
+#'   to long lists, such as all municipalities.
 #' * `qr_checkbox()`: a checkbox per choice, multiple choice.
 #' * `qr_radio()`: a radio button per choice, one choice.
+#'
+#' The parameter's `max` (see [qr_param()]) applies to every input.
 #'
 #' @param param Name of the selection parameter, e.g. `"gemeente"`.
 #' @param choices Keys to choose from. Names, if any, are shown as labels:
@@ -23,15 +26,27 @@ NULL
 
 #' @rdname qr_inputs
 #' @param multiple Allow more than one choice.
-#' @param size Number of visible rows; defaults to up to 8.
+#' @param search Make the list searchable (type to filter, selected choices as
+#'   removable chips). Uses the bundled Tom Select library; `FALSE` gives a
+#'   plain list box.
+#' @param placeholder Text shown in the search field.
+#' @param size Rows shown by the plain list box; defaults to up to 8.
 #' @export
-qr_select <- function(param, choices, label = param, multiple = TRUE, size = NULL) {
+qr_select <- function(param, choices, label = param, multiple = TRUE, search = TRUE,
+                      placeholder = NULL, size = NULL) {
   choices <- .check_choices(choices)
   size <- size %||% if (multiple) min(length(choices), 8L) else 1L
   options <- unname(Map(function(value, text) htmltools::tags$option(value = value, text),
                         choices, names(choices)))
-  .qr_input(param, label, "select",
-            htmltools::tags$select(multiple = if (multiple) NA, size = size, options))
+  select <- htmltools::tags$select(
+    multiple = if (multiple) NA, size = size,
+    `data-qr-search` = if (search) NA, `data-qr-placeholder` = placeholder,
+    `aria-label` = if (is.character(label)) label,
+    options
+  )
+  el <- .qr_input(param, label, "select", select)
+  if (search) el <- htmltools::attachDependencies(el, tom_select_dependency(), append = TRUE)
+  el
 }
 
 #' @rdname qr_inputs

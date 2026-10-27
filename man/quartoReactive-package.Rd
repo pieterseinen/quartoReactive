@@ -28,5 +28,10 @@ Authors:
   \item Pieter Seinen \email{p.seinen@ggdhvb.nl}
 }
 
+Other contributors:
+\itemize{
+  \item Tom Select contributors (Tom Select library in inst/htmlwidgets/lib/tom-select (Apache-2.0)) [contributor, copyright holder]
+}
+
 }
 \keyword{internal}
