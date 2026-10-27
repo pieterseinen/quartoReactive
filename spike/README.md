@@ -72,9 +72,71 @@ return a `SharedData` instead of a data.frame subclass, which changes how users
 subset columns for tables (e.g. a second `SharedData` on the same group, as in
 `a_crosstalk.qmd`).
 
-Open questions before committing to A:
+Open questions before committing to A (questions 1 and 2 are partly answered by spike 2):
 1. Is the selection/highlight behaviour that `SharedData` switches on acceptable,
    or must it be turned off by default?
 2. Is the default-on-load workaround robust (slow pages, widgets in tabsets)?
 3. Pre-aggregated charts (e.g. rates per region computed in R) cannot be
    filtered by either approach; is that in scope?
+
+---
+
+# Spike 2: book-wide persistent inputs (`book/`, `qrspike/`)
+
+Goal: inputs that select municipalities across a whole Quarto book, plus a
+custom htmlwidget, with crosstalk only as a bridge for standard widgets.
+
+## Design
+
+- `qrspike/` is a throwaway package (htmlwidgets need an installed package).
+- `qr-state.js`: one store of named params (`gemeente` = array of codes).
+  Persists in `sessionStorage` (survives switching chapters) and mirrors to the
+  URL query (`?gemeente=GM9003,GM9005`; the URL wins on load, so links share a
+  comparison). It also wires every `[data-qr-param]` input and bridges each
+  param to a crosstalk `FilterHandle` on the group of the same name.
+- `qr_book_includes()` (run as the book's `pre-render`) writes
+  `_qr-header.html` (store + config: default selection, `always = "NL"`) and
+  `_qr-sidebar.html` (a selector moved into the book sidebar on every page).
+- `qr_input()` emits markup only; `qr_shared()` is `SharedData` keyed on the
+  municipality code with `group = param`; `qr_iconfill()` is a custom
+  htmlwidget that subscribes to the store directly.
+- Data are synthetic, for fictional municipalities (`GM90xx` are not real codes).
+
+Run: install `qrspike` (`R CMD INSTALL qrspike`), then in `book/`:
+`quarto render` and `Rscript measure_book.R` (serves `_book` over HTTP).
+
+## Results (2026-10-27): all 10 harness steps pass, no console errors
+
+1. First visit shows the configured default in sidebar, inline input, plotly, DT.
+2. Sidebar change updates the inline input, plot and table on the same page.
+3. Plain navigation to another chapter restores the selection everywhere.
+4. A chapter without widgets keeps and shows the selection.
+5–7. An inline input change carries over to other chapters.
+8. A shared link opened in a new session shows the linked selection.
+9–10. Empty selection shows everything, also after navigating.
+
+Covered along the way: duplicate crosstalk keys (one key per municipality,
+many years) work in plotly and DT; R's per-group colours are stable; the
+plotly "filter before subscribe" workaround holds on every page load.
+
+## Found and fixed
+
+- **Empty bar slots.** `plotly_build()` pins category axes to all levels, so
+  plotly.js keeps gaps for filtered-out categories between visible ones. The
+  bridge now shrinks each pinned axis to the present categories, in R's order.
+  The harness checks the drawn categories (it caught the bug before the fix).
+- **Palette warning in output** (9 groups > Set2's 8): chunk `warning: false`
+  here; the real package should pick a palette that fits.
+
+## Open for the real design
+
+- **Mobile:** the selector works inside Quarto's slide-out sidebar, but with
+  the menu closed nothing shows the current selection. Add a compact
+  "Showing: A, B" bar per chapter.
+- **Scale:** ~340 municipalities need a searchable multi-select (and the map
+  selector), not a checkbox list.
+- **Storage key:** `qr-state` is shared by every book on the same origin
+  (e.g. one GitHub Pages site); namespace it per book.
+- Not tested yet: leaflet, widgets inside tabsets (hidden plots have zero
+  size), `quarto preview` reloads, chapters whose data lack a selected code,
+  municipality mergers between data years.

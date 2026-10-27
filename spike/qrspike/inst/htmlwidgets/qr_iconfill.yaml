@@ -1,0 +1,5 @@
+dependencies:
+  - name: qr-state
+    version: 0.0.1
+    src: htmlwidgets/lib/qr-state
+    script: qr-state.js
