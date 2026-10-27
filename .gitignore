@@ -10,3 +10,6 @@ NAMESPACE
 *.tar.gz
 *.Rcheck/
 .DS_Store
+
+# Raw CBS boundaries (166 MB); see data-raw/README.md for where to get it
+data-raw/*.gpkg
