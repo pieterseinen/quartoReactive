@@ -1,6 +1,6 @@
 # adapter_plotly.R -- Plotly adapter for reactive()
 
-#' @keywords internal
+#' @noRd
 .adapt_plotly <- function(widget, store_id, mapping = NULL, ...) {
   # Auto-extract column mapping from plotly widget attrs if not supplied
   spec <- mapping
@@ -46,7 +46,7 @@
 #'
 #' @param widget A plotly object.
 #' @return A named list of column mappings, or NULL.
-#' @keywords internal
+#' @noRd
 .extract_plotly_mapping <- function(widget) {
   attrs <- widget$x$attrs
   if (is.null(attrs)) return(NULL)

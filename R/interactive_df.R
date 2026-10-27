@@ -131,7 +131,7 @@ print.quarto_reactive_df <- function(x, ...) {
   filters <- attr(x, "qr_filters")
   if (length(filters) > 0L) {
     for (f in filters) {
-      cat(sprintf("  filter: %s (%s) — %s\n", f$variable, f$input, f$label))
+      cat(sprintf("  filter: %s (%s) - %s\n", f$variable, f$input, f$label))
     }
   }
   invisible(x)

@@ -6,7 +6,7 @@
 #' it to the reactive data store. Auto-detects the widget type and extracts
 #' the store id from the data.frame used to build the widget.
 #'
-#' @param widget A supported htmlwidget object (plotly, DT::datatable, leaflet).
+#' @param widget_expr A supported htmlwidget object (plotly, DT::datatable, leaflet).
 #' @param mapping Optional explicit column spec for the adapter. Required for
 #'   leaflet, optional override for plotly.
 #' @param ... Additional adapter-specific options.
@@ -76,7 +76,7 @@ reactive <- function(widget_expr, mapping = NULL, ...) {
 #'
 #' @param widget An htmlwidget object.
 #' @return The qr_id string, or NULL if not found.
-#' @keywords internal
+#' @noRd
 .find_reactive_store <- function(widget) {
   # Plotly: data stored in widget$x$visdat (list of environments/functions)
   if (inherits(widget, "plotly")) {
@@ -104,7 +104,7 @@ reactive <- function(widget_expr, mapping = NULL, ...) {
 #' @param expr An unevaluated R expression (from substitute()).
 #' @param env The environment in which to evaluate symbols.
 #' @return The qr_id string, or NULL if not found.
-#' @keywords internal
+#' @noRd
 .find_store_from_expr <- function(expr, env) {
   if (is.symbol(expr)) {
     # A bare variable name — evaluate it and check
