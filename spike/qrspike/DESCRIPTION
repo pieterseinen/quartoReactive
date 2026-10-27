@@ -1,0 +1,13 @@
+Package: qrspike
+Title: Spike: Book-Wide Selection State for Quarto
+Version: 0.0.1
+Authors@R: person("Pieter", "Seinen", email = "p.seinen@ggdhvb.nl", role = c("aut", "cre"))
+Description: Throwaway prototype for book-wide persistent inputs, a crosstalk
+    bridge and a custom htmlwidget. Not for use.
+License: MIT
+Encoding: UTF-8
+Imports:
+    crosstalk,
+    htmltools,
+    htmlwidgets,
+    jsonlite

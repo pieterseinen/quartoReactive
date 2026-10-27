@@ -5,7 +5,6 @@
 *.o
 *.so
 *.dll
-man/*.Rd
 NAMESPACE
 !NAMESPACE
 *.tar.gz

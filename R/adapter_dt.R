@@ -1,6 +1,6 @@
 # adapters/dt.R — DataTables adapter for reactive()
 
-#' @keywords internal
+#' @noRd
 .adapt_dt <- function(widget, store_id, mapping = NULL, ...) {
   # store_id is resolved by reactive() via NSE before dispatch
 

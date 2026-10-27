@@ -1,0 +1,39 @@
+---
+title: "Spike B: own row mask"
+format: html
+---
+
+```{r setup}
+#| include: false
+library(plotly)
+library(DT)
+source("common.R")
+source("rowmask.R")
+
+group <- "cars"
+keys  <- rownames(mtcars)
+
+filters <- list(
+  cyl  = list(input = "radio",    label = "Cylinders"),
+  gear = list(input = "dropdown", label = "Gears"),
+  am   = list(input = "radio",    label = "Transmission", default = "1")
+)
+```
+
+```{r}
+#| echo: false
+htmltools::tagList(
+  spike_dep("qr-spike-rowmask", "rowmask.js"),
+  spike_filters(mtcars, group, keys, filters)
+)
+```
+
+```{r}
+#| echo: false
+mask_plotly(plot_ly(mtcars, x = ~mpg, y = ~hp, color = ~factor(cyl), type = "scatter", mode = "markers"), group)
+```
+
+```{r}
+#| echo: false
+mask_dt(datatable(mtcars[, c("mpg", "cyl", "disp", "hp", "wt", "gear", "am")]), group)
+```

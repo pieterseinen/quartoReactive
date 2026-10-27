@@ -1,0 +1,42 @@
+---
+title: "Spike A: hard cases"
+format: html
+---
+
+```{r setup}
+#| include: false
+library(crosstalk)
+library(plotly)
+library(DT)
+library(ggplot2)
+source("common.R")
+
+group   <- "cars"
+cols    <- c("mpg", "cyl", "disp", "hp", "wt", "gear", "am")
+sd_all  <- SharedData$new(mtcars, group = group)
+filters <- list(cyl = list(input = "radio", label = "Cylinders"))
+```
+
+```{r}
+#| echo: false
+htmltools::tagList(
+  crosstalk::crosstalkLibs(),
+  spike_dep("qr-spike-crosstalk", "sink_crosstalk.js"),
+  spike_filters(mtcars, group, rownames(mtcars), filters)
+)
+```
+
+```{r}
+#| echo: false
+plot_ly(sd_all, x = ~mpg, type = "histogram")
+```
+
+```{r}
+#| echo: false
+ggplotly(ggplot(sd_all, aes(mpg, hp, colour = factor(cyl))) + geom_point())
+```
+
+```{r}
+#| echo: false
+datatable(SharedData$new(mtcars[mtcars$mpg > 20, cols], group = group))
+```

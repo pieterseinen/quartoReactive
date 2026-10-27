@@ -1,0 +1,4 @@
+# Introduction {.unnumbered}
+
+This page has no widgets. The municipality selection in the sidebar must still
+show the current state, and survive passing through this page.

@@ -1,0 +1,23 @@
+# Public transit
+
+```{r setup}
+#| include: false
+library(qrspike)
+library(plotly)
+source("data.R")
+
+transit    <- transit_data()
+sd_transit <- qr_shared(transit, ~code, "gemeente")
+```
+
+Share of households within 500 m of a bus stop.
+
+```{r}
+#| echo: false
+qr_iconfill(transit, key = "code", value = "pct_near_stop", label = "name", param = "gemeente")
+```
+
+```{r}
+#| echo: false
+plot_ly(sd_transit, x = ~name, y = ~pct_near_stop, type = "bar")
+```
