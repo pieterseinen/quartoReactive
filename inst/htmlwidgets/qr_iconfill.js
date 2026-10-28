@@ -103,9 +103,15 @@ HTMLWidgets.widget({
       parts.number.textContent = format(x, value === null ? null : value * progress);
     }
 
+    // An icon in a hidden container (e.g. a closed tab) cannot be measured
+    // yet, so it is measured again when it becomes visible.
     function animate(x, parts, value) {
       if (reduceMotion || !x.duration || value === null) {
         draw(x, parts, value, 1);
+        whenVisible(parts.figure, function () {
+          measure(x, parts);
+          draw(x, parts, value, 1);
+        });
         return;
       }
       draw(x, parts, value, 0);
@@ -117,7 +123,10 @@ HTMLWidgets.widget({
         draw(x, parts, value, easeOut(t));
         if (t < 1) requestAnimationFrame(step);
       }
-      whenVisible(parts.figure, function () { requestAnimationFrame(step); });
+      whenVisible(parts.figure, function () {
+        measure(x, parts);
+        requestAnimationFrame(step);
+      });
     }
 
     // Icons further down the page fill up once the reader scrolls to them.

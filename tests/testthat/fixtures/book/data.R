@@ -36,3 +36,8 @@ municipality_shapes <- function() {
   }
   sf::st_sf(municipalities, geometry = sf::st_sfc(lapply(1:8, square), crs = 28992))
 }
+
+# A point per area (fictional, around 's-Hertogenbosch) for leaflet markers.
+area_points <- function() {
+  data.frame(areas, lng = 5.0 + seq_len(nrow(areas)) * 0.05, lat = 51.6 + (seq_len(nrow(areas)) %% 3) * 0.05)
+}

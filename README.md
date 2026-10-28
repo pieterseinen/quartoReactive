@@ -7,7 +7,8 @@ a comparison can be shared.
 
 **See it working:** <https://pieterseinen.github.io/quartoReactive/>, an
 example book (in Dutch) comparing the municipalities of GGD Hart voor Brabant,
-with a user guide and code examples.
+with a user guide and code examples. Function reference:
+<https://pieterseinen.github.io/quartoReactive/package/>.
 
 ```r
 remotes::install_github("pieterseinen/quartoReactive")
@@ -29,8 +30,10 @@ qr_book_setup(
 ```r
 # in a chapter
 qr_select("gemeente", choices)                          # optional inline input
+qr_map_select("gemeente", shapes, key = "code", name = "naam")  # click a map (sf)
 plotly::plot_ly(qr_data(df, "code", "gemeente"), ...)   # any crosstalk widget
-qr_iconfill(df, key = "code", value = "pct", label = "naam", param = "gemeente")
+qr_iconfill(df, key = "code", value = "pct", label = "naam", param = "gemeente",
+            icon = "heart")                             # icons filled to a percentage
 ```
 
 and in `_quarto.yml`:

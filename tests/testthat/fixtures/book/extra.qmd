@@ -1,0 +1,46 @@
+# Extra
+
+Widgets in tabs, and leaflet.
+
+```{r setup}
+#| include: false
+library(quartoReactive)
+library(plotly)
+library(DT)
+library(leaflet)
+source("data.R")
+transit <- transit_data()
+```
+
+::: {.panel-tabset}
+
+## First
+
+Visible tab.
+
+## Hidden
+
+```{r}
+#| echo: false
+plot_ly(qr_data(transit, "code", "gemeente"), x = ~name, y = ~pct_near_stop, type = "bar")
+```
+
+```{r}
+#| echo: false
+datatable(qr_data(transit, "code", "gemeente"), rownames = FALSE)
+```
+
+```{r}
+#| echo: false
+qr_iconfill(transit, key = "code", value = "pct_near_stop", label = "name", param = "gemeente",
+            icon = "person", duration = 300)
+```
+
+:::
+
+```{r}
+#| echo: false
+leaflet(qr_data(area_points(), "code", "gemeente")) |>
+  addTiles(urlTemplate = "") |>
+  addCircleMarkers(lng = ~lng, lat = ~lat, label = ~name)
+```

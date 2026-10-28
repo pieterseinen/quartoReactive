@@ -4,7 +4,7 @@
 
 skip_if_no_browser_stack <- function() {
   skip_on_cran()
-  for (pkg in c("chromote", "httpuv", "plotly", "DT", "withr", "sf")) skip_if_not_installed(pkg)
+  for (pkg in c("chromote", "httpuv", "plotly", "DT", "leaflet", "withr", "sf")) skip_if_not_installed(pkg)
   if (!nzchar(quarto_bin())) skip("Quarto not found (set QUARTO_PATH)")
   chrome <- tryCatch(chromote::find_chrome(), error = function(e) NULL)
   if (is.null(chrome) || !nzchar(chrome)) skip("No Chrome/Edge found (set CHROMOTE_CHROME)")

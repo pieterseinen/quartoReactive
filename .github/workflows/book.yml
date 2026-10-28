@@ -33,7 +33,10 @@ jobs:
             any::DT
             any::sf
             any::rmarkdown
+            any::pkgdown
             local::.
+
+      - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
@@ -41,6 +44,12 @@ jobs:
 
       - name: Render book
         run: quarto render examples/book
+
+      # The function reference (pkgdown) is published next to the book.
+      - name: Build reference site
+        run: >
+          Rscript -e 'pkgdown::build_site(override = list(destination =
+          "examples/book/_book/package"), preview = FALSE, new_process = FALSE)'
 
       - uses: actions/upload-pages-artifact@v3
         with:

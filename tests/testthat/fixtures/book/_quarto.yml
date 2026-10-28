@@ -8,6 +8,7 @@ book:
     - index.qmd
     - health.qmd
     - transit.qmd
+    - extra.qmd
 
 format:
   html:

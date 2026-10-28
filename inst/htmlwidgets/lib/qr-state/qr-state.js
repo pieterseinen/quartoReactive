@@ -343,6 +343,25 @@
     });
   }
 
+  // Drops keys that no input for the param on this page offers, such as a
+  // mistyped or outdated code in a shared link. Pages without such an input
+  // keep the selection as is.
+  function dropUnknown(param, inputs) {
+    var known = null;
+    inputs.forEach(function (el) {
+      if (el.dataset.qrParam !== param) return;
+      known = known || {};
+      el.querySelectorAll('option, input, path[data-key]').forEach(function (o) {
+        known[o.dataset.key || o.value] = true;
+      });
+    });
+    if (!known) return;
+    var kept = values[param].filter(function (k) { return known[k]; });
+    if (kept.length === values[param].length) return;
+    values[param] = kept;
+    assignSlots(param);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var inputs = Array.from(document.querySelectorAll('[data-qr-param]'));
     var bars = Array.from(document.querySelectorAll('[data-qr-bar]'));
@@ -351,6 +370,7 @@
       if (params.indexOf(el.dataset.qrParam) < 0) params.push(el.dataset.qrParam);
     });
     params.forEach(resolve);
+    params.forEach(function (p) { dropUnknown(p, inputs); });
     writeStorage();
     writeUrl();
     inputs.forEach(bootInput);

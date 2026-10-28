@@ -43,7 +43,10 @@ en [hoe het werkt](hoe-het-werkt.qmd).
 remotes::install_github("pieterseinen/quartoReactive")
 ```
 
-Het pakket is in ontwikkeling: functies kunnen nog veranderen.
+Het pakket is in ontwikkeling: functies kunnen nog veranderen. Alle functies
+en argumenten staan in het
+[functieoverzicht](https://pieterseinen.github.io/quartoReactive/package/reference/)
+(Engels).
 
 ## Bronnen
 

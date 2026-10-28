@@ -27,7 +27,8 @@
 #' if (requireNamespace("sf", quietly = TRUE)) {
 #'   path <- system.file("extdata", "hart_voor_brabant.gpkg", package = "quartoReactive")
 #'   gemeenten <- sf::st_read(path, "gemeenten", quiet = TRUE)
-#'   qr_map_select("gemeente", gemeenten, key = "code", name = "naam")
+#'   # As the last value of a Quarto chunk, the map shows on the page.
+#'   map <- qr_map_select("gemeente", gemeenten, key = "code", name = "naam")
 #' }
 qr_map_select <- function(param, shapes, key, name = key, label = param,
                           color = "#2a7ab0", fill = "#e3e7eb", border = "#ffffff",

@@ -1,6 +1,6 @@
 Package: quartoReactive
 Title: Book-Wide Selections for Quarto HTML Documents
-Version: 0.4.0
+Version: 0.5.0
 Authors@R: c(
     person("Pieter", "Seinen", email = "p.seinen@ggdhvb.nl",
            role = c("aut", "cre")),
@@ -15,6 +15,9 @@ Description: Adds selection parameters to Quarto books and documents, without
     Standard widgets follow through 'crosstalk'; the package adds its own
     widgets for cases crosstalk does not cover.
 License: MIT + file LICENSE
+URL: https://pieterseinen.github.io/quartoReactive/package/,
+    https://github.com/pieterseinen/quartoReactive
+BugReports: https://github.com/pieterseinen/quartoReactive/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports:
@@ -26,6 +29,7 @@ Suggests:
     chromote,
     DT,
     httpuv,
+    leaflet,
     plotly,
     sf,
     testthat (>= 3.0.0),
