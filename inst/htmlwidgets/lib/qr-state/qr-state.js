@@ -130,6 +130,10 @@
     var boxes  = Array.from(el.querySelectorAll('input'));
     var max    = qrState.max(param);
 
+    if (el.dataset.qrMap !== undefined) {
+      bootMap(el, param, max);
+      return;
+    }
     if (select && select.dataset.qrSearch !== undefined && window.TomSelect) {
       bootSearch(el, param, select, max);
       return;
@@ -180,6 +184,49 @@
       syncing = true;
       ts.setValue(multiple ? keys : keys.slice(0, 1), true);
       syncing = false;
+    });
+  }
+
+  // A map (qr_map_select): each <path data-key> toggles its key. Selected
+  // areas take their selection colour; at `max`, unselected areas are marked
+  // as unavailable.
+  function bootMap(el, param, max) {
+    var paths = Array.from(el.querySelectorAll('path[data-key]'));
+    var hover = el.querySelector('.qr-map-hover');
+    var fallback = el.dataset.qrColor;
+
+    function toggle(key) {
+      var keys = qrState.get(param);
+      var i = keys.indexOf(key);
+      if (i >= 0) keys.splice(i, 1);
+      else if (max === null || keys.length < max) keys.push(key);
+      else return;
+      qrState.set(param, keys);
+    }
+    function show(path) {
+      if (hover) hover.textContent = path ? path.getAttribute('aria-label') : ' ';
+    }
+
+    paths.forEach(function (p) {
+      p.addEventListener('click', function () { toggle(p.dataset.key); });
+      p.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(p.dataset.key); }
+      });
+      p.addEventListener('mouseenter', function () { show(p); });
+      p.addEventListener('focus', function () { show(p); });
+      p.addEventListener('mouseleave', function () { show(null); });
+      p.addEventListener('blur', function () { show(null); });
+    });
+
+    qrState.subscribe(param, function (keys) {
+      var full = max !== null && keys.length >= max;
+      paths.forEach(function (p) {
+        var on = keys.indexOf(p.dataset.key) >= 0;
+        p.setAttribute('aria-pressed', on ? 'true' : 'false');
+        p.setAttribute('aria-disabled', !on && full ? 'true' : 'false');
+        p.classList.toggle('qr-selected', on);
+        p.style.fill = on ? (qrState.color(param, p.dataset.key) || fallback) : '';
+      });
     });
   }
 

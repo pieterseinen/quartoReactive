@@ -2,3 +2,10 @@
 
 This page has no widgets. The municipality selection in the sidebar must still
 show the current state, and survive passing through this page.
+
+```{r}
+#| echo: false
+library(quartoReactive)
+source("data.R")
+qr_map_select("gemeente", municipality_shapes(), key = "code", name = "name", label = "Kaart")
+```

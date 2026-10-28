@@ -200,3 +200,40 @@ test_that("a shared link opens with its selection, and empty means everything", 
 
   expect_identical(tab$errors(), character())
 })
+
+test_that("the map selects by click and keyboard, in sync with other inputs", {
+  tab <- browser_tab(base)
+  map_state <- function() {
+    jsonlite::fromJSON(tab$eval('JSON.stringify(Array.from(document.querySelectorAll(".qr-input-map path"))
+      .map(function (p) { return { key: p.dataset.key, pressed: p.getAttribute("aria-pressed"),
+        disabled: p.getAttribute("aria-disabled"), fill: p.style.fill }; }))'))
+  }
+  click_map <- function(code) {
+    tab$run(sprintf('document.querySelector(".qr-input-map path[data-key=\\"%s\\"]")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }))', code))
+  }
+
+  tab$go("index.html")  # default GM9001, GM9002 in slots 1 and 2
+  m <- map_state()
+  expect_identical(m$key[m$pressed == "true"], c("GM9001", "GM9002"))
+  expect_identical(m$fill[m$key %in% c("GM9001", "GM9002")], c("rgb(170, 0, 0)", "rgb(0, 170, 0)"))
+
+  click_map("GM9004")
+  expect_page_shows(tab, c("GM9001", "GM9002", "GM9004"), "map: click adds")
+
+  tab$run('document.querySelector(".qr-input-map path[data-key=\\"GM9001\\"]").focus()')
+  tab$press("Enter")
+  expect_page_shows(tab, c("GM9002", "GM9004"), "map: Enter removes")
+  expect_identical(tab$eval('document.querySelector(".qr-map-hover").textContent'), "Beekdal")
+
+  click_sidebar(tab, "GM9006")  # another input: the map follows
+  m <- map_state()
+  expect_identical(m$key[m$pressed == "true"], c("GM9002", "GM9004", "GM9006"))
+
+  click_map("GM9007")  # fourth key: max reached
+  m <- map_state()
+  expect_identical(m$key[m$disabled == "true"], c("GM9001", "GM9003", "GM9005", "GM9008"))
+  click_map("GM9008")  # at max: nothing happens
+  expect_page_shows(tab, c("GM9002", "GM9004", "GM9006", "GM9007"), "map: max holds")
+  expect_identical(tab$errors(), character())
+})

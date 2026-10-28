@@ -4,7 +4,7 @@
 
 skip_if_no_browser_stack <- function() {
   skip_on_cran()
-  for (pkg in c("chromote", "httpuv", "plotly", "DT", "withr")) skip_if_not_installed(pkg)
+  for (pkg in c("chromote", "httpuv", "plotly", "DT", "withr", "sf")) skip_if_not_installed(pkg)
   if (!nzchar(quarto_bin())) skip("Quarto not found (set QUARTO_PATH)")
   chrome <- tryCatch(chromote::find_chrome(), error = function(e) NULL)
   if (is.null(chrome) || !nzchar(chrome)) skip("No Chrome/Edge found (set CHROMOTE_CHROME)")
@@ -76,6 +76,14 @@ browser_tab <- function(base, reduced_motion = FALSE, env = parent.frame()) {
       Sys.sleep(0.8)
     },
     eval = function(js) b$Runtime$evaluate(js, returnByValue = TRUE)$result$value,
+    # Presses a key on the focused element.
+    press = function(key, code = key, keycode = 13) {
+      for (type in c("keyDown", "keyUp")) {
+        b$Input$dispatchKeyEvent(type = type, key = key, code = code,
+                                 windowsVirtualKeyCode = keycode)
+      }
+      Sys.sleep(0.5)
+    },
     # Types into the focused element and presses Enter, as a reader would.
     type = function(text) {
       b$Input$insertText(text)

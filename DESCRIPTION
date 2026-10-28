@@ -27,6 +27,7 @@ Suggests:
     DT,
     httpuv,
     plotly,
+    sf,
     testthat (>= 3.0.0),
     withr
 Config/roxygen2/version: 8.1.1

@@ -1,0 +1,57 @@
+---
+code-fold: false
+---
+
+# Kiezen op de kaart
+
+```{r}
+#| echo: false
+source("_common.R")
+```
+
+`qr_map_select()` tekent gebieden als een klikbare kaart. Een klik (of tik)
+op een gemeente zet haar in de selectie of haalt haar eruit. Gekozen
+gemeenten krijgen hun selectiekleur, net als de lijnen in de grafieken. De
+kaart is invoer zoals `qr_select()`: ze loopt gelijk met alle andere invoer
+op de parameter.
+
+```{r}
+grenzen <- sf::st_read(
+  system.file("extdata", "hart_voor_brabant.gpkg", package = "quartoReactive"),
+  layer = "gemeenten", quiet = TRUE
+)
+
+qr_map_select("gemeente", grenzen, key = "code", name = "naam", label = "Gemeenten")
+```
+
+## De grenzen
+
+`shapes` is een `sf`-object met (multi)polygonen, één rij per sleutel. De
+grenzen hier komen uit de CBS Gebiedsindelingen 2025, laag
+`gemeente_gegeneraliseerd`, gefilterd op de gemeenten van GGD Hart voor
+Brabant. Hoe dat gaat staat in
+[`data-raw/hart_voor_brabant.R`](https://github.com/pieterseinen/quartoReactive/blob/main/data-raw/hart_voor_brabant.R).
+
+De kaart is SVG die R bij het renderen maakt: geen kaartbibliotheek, geen
+ondergrond en geen internetverbinding nodig. De 19 gemeenten van Hart voor
+Brabant zijn samen ongeveer 20 kB. Voor heel Nederland (342 gemeenten) is
+dat zo'n 400 kB per pagina; gebruik dan `tolerance` om te vereenvoudigen, of
+toon alleen de gemeenten die er voor je boek toe doen.
+
+## Toegankelijkheid
+
+Elke gemeente is met Tab te bereiken en met Enter of spatie te kiezen.
+Schermlezers horen de naam en of de gemeente gekozen is. Onder de kaart staat
+de naam van de gemeente waar de muis of focus op staat. Is het maximum
+bereikt, dan zijn niet-gekozen gemeenten niet meer te kiezen tot je er een
+weghaalt.
+
+## Instellingen
+
+| Argument | Betekenis |
+|---|---|
+| `key`, `name` | kolom met de sleutel en kolom met de naam |
+| `color` | kleur van gekozen gebieden als de parameter geen `colors` heeft |
+| `fill`, `border` | vulling en randkleur van niet-gekozen gebieden |
+| `tolerance` | vereenvoudigen, in de eenheid van de kaart (hier meters) |
+| `width` | breedte; de hoogte volgt uit de vorm van het gebied |
