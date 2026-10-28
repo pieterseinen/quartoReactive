@@ -73,4 +73,12 @@ er voor de lezer bij, zoals in het hoofdstuk [Bevolking](bevolking.qmd).
 - **Selectie van crosstalk.** `SharedData` zet in plotly en DT ook crosstalk's
   eigen selecteren en markeren aan (bijvoorbeeld klikken op een punt). Dat
   staat los van de selectie van dit pakket.
-- **Nog niet getest:** leaflet, en widgets in tabbladen (`panel-tabset`).
+- **leaflet** volgt de selectie met markers en cirkels (`addMarkers()`,
+  `addCircleMarkers()`), maar niet met `addPolygons()`: leaflet ondersteunt
+  crosstalk niet voor vlakken. Wil je gebieden laten kiezen, gebruik dan
+  [`qr_map_select()`](kaart.qmd).
+- **Tabbladen** (`panel-tabset`) werken: een grafiek, tabel of icoon in een
+  verborgen tabblad toont de juiste selectie zodra je het tabblad opent.
+- **Onbekende codes** in een gedeelde link (een tikfout, of een gemeente die
+  na een herindeling niet meer bestaat) vallen weg als geen enkele invoer op
+  de pagina ze kent.

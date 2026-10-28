@@ -43,8 +43,13 @@ flowchart LR
 
 - Het pakket filtert rijen; het rekent niets opnieuw uit.
 - Selectiekleuren werken voor plotly-sporen met één sleutel per spoor.
-- Nog niet getest: leaflet, widgets in tabbladen en `quarto preview` met
-  automatisch herladen.
-- Het pakket is in ontwikkeling; zie
-  [ARCHITECTURE.md](https://github.com/pieterseinen/quartoReactive/blob/main/ARCHITECTURE.md)
-  voor het ontwerp en de plannen.
+- leaflet volgt de selectie alleen met markers en cirkels, niet met vlakken.
+- Getest en werkend: widgets in tabbladen, en `quarto preview` (de selectie
+  blijft bewaard als de pagina na een wijziging herlaadt).
+
+## Meer lezen
+
+- Het [functieoverzicht](https://pieterseinen.github.io/quartoReactive/package/reference/) (Engels) beschrijft
+  alle functies en argumenten.
+- [ARCHITECTURE.md](https://github.com/pieterseinen/quartoReactive/blob/main/ARCHITECTURE.md)
+  beschrijft het ontwerp en de keuzes daarachter.

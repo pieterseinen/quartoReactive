@@ -20,8 +20,11 @@
 #' @name qr_inputs
 #' @examples
 #' choices <- c(Tilburg = "GM0855", Oss = "GM0828", Vught = "GM0865")
-#' qr_select("gemeente", choices, label = "Municipalities")
-#' qr_radio("gemeente", choices)
+#'
+#' # As the last value of a Quarto or R Markdown chunk, an input shows on the
+#' # page; in the console it prints as HTML.
+#' search <- qr_select("gemeente", choices, label = "Municipalities")
+#' one <- qr_radio("gemeente", choices)
 NULL
 
 #' @rdname qr_inputs

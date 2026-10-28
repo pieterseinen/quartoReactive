@@ -11,13 +11,13 @@ vergelijken, en elke grafiek en tabel in elk hoofdstuk volgt die keuze. De
 keuze blijft bewaard als je naar een ander hoofdstuk gaat en staat in de link
 in de adresbalk, zodat je een vergelijking kunt delen.
 
-Probeer het: kies hieronder of in de zijbalk een paar gemeenten en blader
-daarna door de hoofdstukken.
+Probeer het: klik op de kaart, of kies in de zijbalk, een paar gemeenten en
+blader daarna door de hoofdstukken.
 
 ```{r}
 #| echo: false
-qr_select("gemeente", choices, label = "Vergelijk gemeenten (maximaal 8)",
-          placeholder = "Zoek een gemeente", no_results = "Geen gemeente gevonden")
+qr_map_select("gemeente", grenzen, key = "code", name = "naam",
+              label = "Klik op gemeenten om ze te vergelijken (maximaal 8)")
 ```
 
 ## Wat staat er in dit boek?
@@ -29,7 +29,7 @@ geheel, staan altijd ter vergelijking in beeld. Onder elke grafiek kun je met
 *Toon code* de R-code zien.
 
 **Handleiding** laat zien hoe je zelf zo'n boek maakt:
-[aan de slag](aan-de-slag.qmd), [invoer](invoer.qmd),
+[aan de slag](aan-de-slag.qmd), [invoer](invoer.qmd), [kiezen op de kaart](kaart.qmd),
 [grafieken en tabellen](grafieken-en-tabellen.qmd),
 [eigen widgets](eigen-widgets.qmd), [losse documenten](losse-documenten.qmd)
 en [hoe het werkt](hoe-het-werkt.qmd).
@@ -43,7 +43,10 @@ en [hoe het werkt](hoe-het-werkt.qmd).
 remotes::install_github("pieterseinen/quartoReactive")
 ```
 
-Het pakket is in ontwikkeling: functies kunnen nog veranderen.
+Het pakket is in ontwikkeling: functies kunnen nog veranderen. Alle functies
+en argumenten staan in het
+[functieoverzicht](https://pieterseinen.github.io/quartoReactive/package/reference/)
+(Engels).
 
 ## Bronnen
 

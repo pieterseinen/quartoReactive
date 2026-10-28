@@ -8,6 +8,8 @@ read_extdata <- function(file) {
 bevolking  <- read_extdata("hvb_bevolking.csv")
 inkomen    <- read_extdata("hvb_inkomen.csv")
 gezondheid <- read_extdata("hvb_gezondheid.csv")
+grenzen    <- sf::st_read(system.file("extdata", "hart_voor_brabant.gpkg", package = "quartoReactive"),
+                          layer = "gemeenten", quiet = TRUE)
 
 # Nederland en de GGD-regio staan altijd ter vergelijking in beeld.
 benchmarks <- c("GG5406", "NL01")

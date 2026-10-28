@@ -21,6 +21,7 @@ book:
       chapters:
         - aan-de-slag.qmd
         - invoer.qmd
+        - kaart.qmd
         - grafieken-en-tabellen.qmd
         - eigen-widgets.qmd
         - losse-documenten.qmd

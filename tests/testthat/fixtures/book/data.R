@@ -25,3 +25,19 @@ transit_data <- function() {
     data.frame(areas, pct_near_stop = round(runif(nrow(areas), 35, 95)))
   })
 }
+
+# A 4 x 2 grid of squares, one per municipality, for the map selector.
+municipality_shapes <- function() {
+  square <- function(i) {
+    x <- ((i - 1) %% 4) * 10
+    y <- ((i - 1) %/% 4) * 10
+    sf::st_polygon(list(matrix(c(x, y, x + 10, y, x + 10, y + 10, x, y + 10, x, y),
+                               ncol = 2, byrow = TRUE)))
+  }
+  sf::st_sf(municipalities, geometry = sf::st_sfc(lapply(1:8, square), crs = 28992))
+}
+
+# A point per area (fictional, around 's-Hertogenbosch) for leaflet markers.
+area_points <- function() {
+  data.frame(areas, lng = 5.0 + seq_len(nrow(areas)) * 0.05, lat = 51.6 + (seq_len(nrow(areas)) %% 3) * 0.05)
+}

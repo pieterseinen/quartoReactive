@@ -44,6 +44,13 @@ everything runs in the browser from the rendered HTML.
   ways on `DOMContentLoaded`. A `<select data-qr-search>` is upgraded to Tom
   Select (bundled, 2.6.2) when the library is on the page, else it stays a
   plain list box. At `max`, unchecked checkboxes are disabled.
+- **Map selector** (`qr_map_select()`, `data-qr-map`): R turns `sf` polygons
+  into an inline SVG (scaled to 1000 units, y down, rounded relative path
+  steps), so it needs no map library and works in the sidebar too. Each
+  `<path data-key>` toggles its key by click or Enter/Space.
+- **Unknown keys**: on load, keys that no input for the param on the page
+  offers (typos, codes that disappeared in a merger) are dropped. Pages
+  without such an input keep the selection untouched.
 - **Selection bar** (`data-qr-bar`): chips with label, colour and a remove
   button. When sticky, it tracks the bottom of Quarto's fixed header, which
   slides in and out on narrow screens.
@@ -114,5 +121,5 @@ history (`spike/`, commit ff3344e).
 1. ~~Core: store, bridge, inputs, book setup, icon fill, tests~~ (0.2.0)
 2. ~~Searchable multi-select, selection bar, maximum selection size~~ (0.3.0)
 3. ~~Icon fill: any SVG icon, fill animation~~ (0.4.0; sunburst dropped)
-4. Map selector from municipality polygons (`inst/extdata/hart_voor_brabant.gpkg`)
-5. Robustness: leaflet, widgets in tabsets, `quarto preview`, documentation site
+4. ~~Map selector from polygons (`qr_map_select()`)~~ (0.5.0)
+5. ~~Robustness: leaflet markers, tabsets, `quarto preview`, unknown keys; pkgdown reference~~ (0.5.0)

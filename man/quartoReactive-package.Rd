@@ -20,6 +20,15 @@ in the URL, so a comparison can be shared as a link.
 leaflet), or use the package's own widgets such as \code{\link[=qr_iconfill]{qr_iconfill()}}.
 }
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://pieterseinen.github.io/quartoReactive/package/}
+  \item \url{https://github.com/pieterseinen/quartoReactive}
+  \item Report bugs at \url{https://github.com/pieterseinen/quartoReactive/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Pieter Seinen \email{p.seinen@ggdhvb.nl}
 

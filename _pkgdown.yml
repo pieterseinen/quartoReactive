@@ -1,0 +1,23 @@
+url: https://pieterseinen.github.io/quartoReactive/package/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [reference, book]
+    right: [search, github]
+  components:
+    book:
+      text: Example book (Dutch)
+      href: https://pieterseinen.github.io/quartoReactive/
+
+reference:
+  - title: Set up
+    desc: Selection parameters for a book or a single document.
+    contents: [qr_param, qr_book_setup, qr_config]
+  - title: Inputs
+    contents: [qr_inputs, qr_map_select, qr_selection_bar]
+  - title: Widgets
+    desc: Follow a selection with crosstalk-aware widgets or the package's own.
+    contents: [qr_data, qr_iconfill, qr_icons]

@@ -30,3 +30,14 @@
   overflow: hidden; text-overflow: ellipsis; }
 /* Icons wrap onto more rows on narrow screens: grow instead of scrolling. */
 .qr_iconfill.html-widget { height: auto !important; min-height: 0; }
+
+/* Map selector (qr_map_select). */
+.qr-input-map svg { display: block; width: 100%; height: auto; }
+.qr-input-map path { fill: var(--qr-map-fill); fill-rule: evenodd; stroke: var(--qr-map-border);
+  stroke-width: 1px; vector-effect: non-scaling-stroke; cursor: pointer; outline: none;
+  transition: fill .2s; }
+.qr-input-map path:hover, .qr-input-map path:focus-visible { stroke: #212529; stroke-width: 2px; }
+.qr-input-map path:hover:not(.qr-selected) { fill: color-mix(in srgb, var(--qr-map-fill), #000 12%); }
+.qr-input-map path[aria-disabled="true"] { cursor: not-allowed; }
+.qr-map-hover { min-height: 1.5em; font-size: .9rem; color: var(--bs-secondary-color, #6c757d); }
+@media (prefers-reduced-motion: reduce) { .qr-input-map path { transition: none; } }

@@ -200,3 +200,89 @@ test_that("a shared link opens with its selection, and empty means everything", 
 
   expect_identical(tab$errors(), character())
 })
+
+test_that("the map selects by click and keyboard, in sync with other inputs", {
+  tab <- browser_tab(base)
+  map_state <- function() {
+    jsonlite::fromJSON(tab$eval('JSON.stringify(Array.from(document.querySelectorAll(".qr-input-map path"))
+      .map(function (p) { return { key: p.dataset.key, pressed: p.getAttribute("aria-pressed"),
+        disabled: p.getAttribute("aria-disabled"), fill: p.style.fill }; }))'))
+  }
+  click_map <- function(code) {
+    tab$run(sprintf('document.querySelector(".qr-input-map path[data-key=\\"%s\\"]")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }))', code))
+  }
+
+  tab$go("index.html")  # default GM9001, GM9002 in slots 1 and 2
+  m <- map_state()
+  expect_identical(m$key[m$pressed == "true"], c("GM9001", "GM9002"))
+  expect_identical(m$fill[m$key %in% c("GM9001", "GM9002")], c("rgb(170, 0, 0)", "rgb(0, 170, 0)"))
+
+  click_map("GM9004")
+  expect_page_shows(tab, c("GM9001", "GM9002", "GM9004"), "map: click adds")
+
+  tab$run('document.querySelector(".qr-input-map path[data-key=\\"GM9001\\"]").focus()')
+  tab$press("Enter")
+  expect_page_shows(tab, c("GM9002", "GM9004"), "map: Enter removes")
+  expect_identical(tab$eval('document.querySelector(".qr-map-hover").textContent'), "Beekdal")
+
+  click_sidebar(tab, "GM9006")  # another input: the map follows
+  m <- map_state()
+  expect_identical(m$key[m$pressed == "true"], c("GM9002", "GM9004", "GM9006"))
+
+  click_map("GM9007")  # fourth key: max reached
+  m <- map_state()
+  expect_identical(m$key[m$disabled == "true"], c("GM9001", "GM9003", "GM9005", "GM9008"))
+  click_map("GM9008")  # at max: nothing happens
+  expect_page_shows(tab, c("GM9002", "GM9004", "GM9006", "GM9007"), "map: max holds")
+  expect_identical(tab$errors(), character())
+})
+
+test_that("widgets in a hidden tab are right when the tab is shown", {
+  tab <- browser_tab(base)
+  tab$go("extra.html?gemeente=GM9001")
+  tab$run('qrState.set("gemeente", ["GM9003", "GM9005"])')   # while the tab is hidden
+  tab$run('Array.from(document.querySelectorAll(".panel-tabset .nav-link"))
+             .find(function (a) { return a.textContent.trim() === "Hidden"; }).click()')
+  Sys.sleep(1.5)
+  s <- page_snapshot(tab)
+  shown <- c("GM9003", "GM9005", "NL")
+  expect_identical(s$plots[[1]], sort(unname(name_of[shown])))
+  expect_identical(s$axes[[1]], sort(unname(name_of[shown])))
+  expect_identical(s$tables[[1]], sort(shown))
+  expect_identical(s$icons, sort(shown))
+  expect_gt(tab$eval('document.querySelector(".plotly.html-widget").getBoundingClientRect().width'), 100)
+  # Icons created while hidden are measured on their shape once shown: the
+  # person icon's shape is shorter than its 16-unit viewBox.
+  fills <- icon_fills(tab)
+  expect_equal(fills, pct_of[names(fills)], tolerance = 1e-6)
+  shape_heights <- jsonlite::fromJSON(tab$eval('JSON.stringify(Array.from(document.querySelectorAll(".qr-icon"))
+    .map(function (f) { return +f.querySelector("rect").getAttribute("height"); }))'))
+  expect_true(all(shape_heights < 16))
+  expect_identical(tab$errors(), character())
+})
+
+test_that("leaflet markers follow the selection", {
+  tab <- browser_tab(base)
+  count_markers <- function() {
+    tab$eval('(function () {
+      var n = 0;
+      HTMLWidgets.find(".leaflet").getMap().eachLayer(function (l) { if (l instanceof L.CircleMarker) n++; });
+      return n;
+    })()')
+  }
+  tab$go("extra.html?gemeente=GM9001,GM9002")
+  expect_identical(count_markers(), 3L)   # plus NL
+  tab$run('qrState.set("gemeente", ["GM9004"])')
+  expect_identical(count_markers(), 2L)
+  tab$run('qrState.set("gemeente", [])')
+  expect_identical(count_markers(), 9L)
+  expect_identical(tab$errors(), character())
+})
+
+test_that("keys no input on the page knows are dropped from a link", {
+  tab <- browser_tab(base)
+  tab$go("health.html?gemeente=GM9001,GM9999")
+  expect_page_shows(tab, "GM9001", "unknown key dropped")
+  expect_identical(tab$errors(), character())
+})
