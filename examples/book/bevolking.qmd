@@ -1,6 +1,7 @@
 # Bevolking
 
 ```{r}
+#| echo: false
 source("_common.R")
 bevolking$pct_65_plus <- round(100 * (bevolking$leeftijd_65_80 + bevolking$leeftijd_80_plus) /
                                  bevolking$inwoners, 1)

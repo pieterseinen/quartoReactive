@@ -1,6 +1,7 @@
 # Gezondheid
 
 ```{r}
+#| echo: false
 source("_common.R")
 volw <- gezondheid[gezondheid$leeftijd == "18+", ]
 indicator <- function(cbs_code) {

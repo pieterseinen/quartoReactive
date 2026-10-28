@@ -3,18 +3,38 @@ project:
   pre-render: _setup.R
 
 book:
-  title: "Gemeenten in Hart voor Brabant"
+  title: "quartoReactive"
+  subtitle: "Gemeenten vergelijken in een Quarto-boek"
+  author: "Pieter Seinen"
+  site-url: https://pieterseinen.github.io/quartoReactive/
+  repo-url: https://github.com/pieterseinen/quartoReactive
+  repo-subdir: examples/book
+  repo-actions: [source, issue]
   chapters:
     - index.qmd
-    - bevolking.qmd
-    - inkomen.qmd
-    - gezondheid.qmd
+    - part: "Voorbeeld: Hart voor Brabant"
+      chapters:
+        - bevolking.qmd
+        - inkomen.qmd
+        - gezondheid.qmd
+    - part: "Handleiding"
+      chapters:
+        - aan-de-slag.qmd
+        - invoer.qmd
+        - grafieken-en-tabellen.qmd
+        - eigen-widgets.qmd
+        - losse-documenten.qmd
+        - hoe-het-werkt.qmd
+
+lang: nl
 
 execute:
-  echo: false
+  echo: true
   warning: false
 
 format:
   html:
+    code-fold: true
+    code-summary: "Toon code"
     include-in-header: _qr-header.html
     include-after-body: _qr-sidebar.html

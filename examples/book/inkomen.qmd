@@ -1,6 +1,7 @@
 # Inkomen
 
 ```{r}
+#| echo: false
 source("_common.R")
 ```
 

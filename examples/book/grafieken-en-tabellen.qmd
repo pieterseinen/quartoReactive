@@ -1,0 +1,76 @@
+---
+code-fold: false
+---
+
+# Grafieken en tabellen
+
+```{r}
+#| echo: false
+source("_common.R")
+```
+
+`qr_data(data, key, param)` maakt van een data frame een gedeelde dataset
+(`crosstalk::SharedData`). Elke widget die
+[crosstalk](https://rstudio.github.io/crosstalk/) ondersteunt, toont dan
+alleen de rijen waarvan de sleutel gekozen is, plus de `always`-regio's. Dat
+geldt onder meer voor plotly, DT en leaflet.
+
+Het widget wordt door zijn eigen R-pakket gebouwd, dus alles wat je in R
+instelt (kleuren, opmaak, labels) blijft behouden.
+
+## Meerdere rijen per gemeente
+
+Een sleutel hoeft niet uniek te zijn. Hier heeft elke gemeente een rij per
+jaar; plotly tekent een lijn per gemeente.
+
+```{r}
+library(plotly)
+
+plot_ly(qr_data(inkomen, "code", "gemeente"),
+        x = ~jaar, y = ~mediaan_gestand, color = ~naam,
+        type = "scatter", mode = "lines") |>
+  layout(xaxis = list(title = ""), yaxis = list(title = "Mediaan inkomen (x 1 000 euro)"))
+```
+
+## Kleuren die bij de gemeente blijven
+
+Met `qr_param(colors = )` krijgt elke gekozen gemeente een kleur in volgorde
+van kiezen, en houdt die zolang ze gekozen blijft, in elke grafiek en op elke
+pagina. Kies je er een gemeente bij of haal je er een weg, dan verandert de
+kleur van de andere niet.
+
+Dit werkt voor plotly-sporen met één gemeente per spoor, zoals de lijnen
+hierboven. Een staafdiagram met alle gemeenten in één spoor houdt de kleuren
+uit R. Niet-gekozen regio's (de `always`-regio's, of alles bij een lege
+selectie) houden ook de kleuren uit R; geef die dus neutrale kleuren, zoals
+in `lijnen()` in `_common.R`.
+
+## Tabellen
+
+```{r}
+library(DT)
+
+k <- inkomen[inkomen$jaar == 2024, c("code", "naam", "laag_inkomen_pct", "hoog_inkomen_pct")]
+datatable(qr_data(k, "code", "gemeente"), rownames = FALSE,
+          colnames = c("Code", "Gemeente", "% laagste 20%", "% hoogste 20%"),
+          options = list(dom = "t", pageLength = 25))
+```
+
+## Ontbrekende gemeenten
+
+Een gemeente die niet in de data staat, verschijnt gewoon niet. In de
+bevolkingscijfers bestaan Land van Cuijk en Maashorst pas sinds 2022 (na
+gemeentelijke herindelingen); hun lijnen beginnen dan ook pas in 2022. Zet dat
+er voor de lezer bij, zoals in het hoofdstuk [Bevolking](bevolking.qmd).
+
+## Waar je op moet letten
+
+- **Bereken in R, filter in de browser.** quartoReactive filtert rijen; het
+  rekent niets opnieuw uit. Een gemiddelde over de gekozen gemeenten moet je
+  dus niet in R voorberekenen.
+- **Sleutels zijn tekst.** Gebruik dezelfde codes in de data, in `choices`
+  en in `qr_param()`.
+- **Selectie van crosstalk.** `SharedData` zet in plotly en DT ook crosstalk's
+  eigen selecteren en markeren aan (bijvoorbeeld klikken op een punt). Dat
+  staat los van de selectie van dit pakket.
+- **Nog niet getest:** leaflet, en widgets in tabbladen (`panel-tabset`).

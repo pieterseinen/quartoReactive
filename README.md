@@ -5,6 +5,14 @@ say, which municipalities to compare; every chart and table in every chapter
 follows, the choice survives moving between chapters, and the URL keeps it so
 a comparison can be shared.
 
+**See it working:** <https://pieterseinen.github.io/quartoReactive/>, an
+example book (in Dutch) comparing the municipalities of GGD Hart voor Brabant,
+with a user guide and code examples.
+
+```r
+remotes::install_github("pieterseinen/quartoReactive")
+```
+
 ```r
 # _setup.R, run as the book's pre-render script
 library(quartoReactive)
@@ -40,9 +48,9 @@ format:
 For a single document, call `qr_config()` in a chunk instead of
 `qr_book_setup()`.
 
-`examples/book` is a complete book on CBS data for the municipalities of GGD
-Hart voor Brabant (`quarto render examples/book`). See
-[ARCHITECTURE.md](ARCHITECTURE.md) for how it works.
+The example book's source is in `examples/book` (`quarto render examples/book`
+after installing the package); GitHub Actions publishes it on every push to
+`main`. See [ARCHITECTURE.md](ARCHITECTURE.md) for how it works.
 
 ## Development
 

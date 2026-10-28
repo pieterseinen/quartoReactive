@@ -48,3 +48,9 @@ test_that("qr_select is searchable by default, with Tom Select attached", {
   expect_no_match(as.character(plain), "data-qr-search")
   expect_identical(deps(plain), "qr-state")
 })
+
+test_that("the no-results text is configurable", {
+  expect_match(as.character(qr_select("g", choices, no_results = "Geen resultaat")),
+               'data-qr-no-results="Geen resultaat"', fixed = TRUE)
+  expect_no_match(as.character(qr_select("g", choices, search = FALSE)), "data-qr-no-results")
+})

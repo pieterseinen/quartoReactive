@@ -1,0 +1,50 @@
+# Hoe het werkt
+
+Alles gebeurt in de browser van de lezer. R maakt bij het renderen de
+HTML, en daarna is er geen R of server meer nodig.
+
+## De selectie
+
+Op elke pagina staat een klein script (`qr-state.js`) dat de selectie
+bijhoudt per parameter:
+
+- **Bij het laden** kiest het, in deze volgorde, de selectie uit de link
+  (`?gemeente=GM0855,GM0796`), uit de opgeslagen selectie van dit tabblad, of
+  de `default` uit `qr_param()`. De link gaat voor, zodat een gedeelde link
+  toont wat gedeeld is.
+- **Bewaren** gebeurt in de *sessionStorage* van de browser, onder een naam
+  per boek. Een ander hoofdstuk openen is een nieuwe pagina; de selectie komt
+  uit die opslag terug. Een nieuw tabblad begint opnieuw, tenzij je een link
+  met selectie opent.
+- **Kleuren**: een nieuw gekozen gemeente krijgt de eerste vrije kleur uit
+  `colors` en houdt die tot ze niet meer gekozen is.
+
+## Invoer en widgets
+
+Invoer is gewone HTML met een `data-qr-param`-attribuut; het script koppelt
+die in twee richtingen aan de selectie. De zoekbare keuzelijst gebruikt de
+bibliotheek [Tom Select](https://tom-select.js.org/), die in het pakket zit.
+
+Voor widgets met crosstalk-ondersteuning zet het script de selectie door naar
+een crosstalk-filter met dezelfde naam als de parameter. `qr_data()` maakt
+`SharedData` in die groep. Eigen widgets abonneren direct op de selectie.
+
+```{mermaid}
+%%| echo: false
+flowchart LR
+  I[Invoer] -- set --> S((qrState))
+  S -- subscribe --> I
+  S -- filter --> C[crosstalk] --> W[plotly, DT, leaflet]
+  S -- subscribe --> E[eigen widgets]
+  S <--> O[(sessionStorage<br/>en link)]
+```
+
+## Beperkingen
+
+- Het pakket filtert rijen; het rekent niets opnieuw uit.
+- Selectiekleuren werken voor plotly-sporen met één sleutel per spoor.
+- Nog niet getest: leaflet, widgets in tabbladen en `quarto preview` met
+  automatisch herladen.
+- Het pakket is in ontwikkeling; zie
+  [ARCHITECTURE.md](https://github.com/pieterseinen/quartoReactive/blob/main/ARCHITECTURE.md)
+  voor het ontwerp en de plannen.

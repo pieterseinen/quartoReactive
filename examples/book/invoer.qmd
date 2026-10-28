@@ -1,0 +1,81 @@
+---
+code-fold: false
+---
+
+# Invoer
+
+```{r}
+#| echo: false
+source("_common.R")
+```
+
+Elke invoer die aan dezelfde parameter hangt, toont en verandert dezelfde
+selectie, ook op andere pagina's. Je kunt invoer in de zijbalk zetten (via
+`qr_book_setup(sidebar = )`) of gewoon in een hoofdstuk, zoals hieronder.
+Alle voorbeelden op deze pagina werken echt: ze veranderen de selectie van
+het hele boek.
+
+## Zoekbare keuzelijst: `qr_select()`
+
+Geschikt voor lange lijsten. Typ om te zoeken; gekozen gemeenten verschijnen
+als labels met een kruisje.
+
+```{r}
+qr_select("gemeente", choices, label = "Gemeenten",
+          placeholder = "Zoek een gemeente", no_results = "Geen gemeente gevonden")
+```
+
+Met `search = FALSE` krijg je een gewone keuzelijst (Ctrl-klik voor meer
+gemeenten), met `multiple = FALSE` kan de lezer er één kiezen.
+
+## Selectievakjes: `qr_checkbox()`
+
+Handig voor korte lijsten. Je hoeft niet alle keuzes te tonen:
+
+```{r}
+qr_checkbox("gemeente", choices[c("Tilburg", "'s-Hertogenbosch", "Oss", "Waalwijk")],
+            label = "De vier grootste gemeenten")
+```
+
+Als het maximum van de parameter is bereikt, worden de lege vakjes
+uitgeschakeld.
+
+## Keuzerondjes: `qr_radio()`
+
+Voor precies één keuze. Let op: een rondje kiezen vervangt de hele selectie
+door die ene gemeente.
+
+```{r}
+qr_radio("gemeente", choices[c("Vught", "Boxtel", "Oisterwijk")], label = "Eén gemeente")
+```
+
+## Selectiebalk: `qr_selection_bar()`
+
+Toont de selectie als labels in hun kleur, met een knop om ze te verwijderen.
+In dit boek staat hij via `qr_book_setup(top = )` bovenaan elk hoofdstuk;
+hier een tweede, niet-zwevende:
+
+```{r}
+qr_selection_bar("gemeente", choices, label = "Gekozen:", empty = "Niets gekozen.",
+                 remove = "Verwijder", sticky = FALSE)
+```
+
+## Instellingen van de parameter
+
+Wat voor alle invoer tegelijk geldt, stel je in bij de parameter met
+`qr_param()`:
+
+| Argument | Betekenis |
+|---|---|
+| `default` | gekozen bij het eerste bezoek |
+| `always` | altijd zichtbaar in grafieken en tabellen, ook als ze niet gekozen zijn |
+| `colors` | kleuren voor gekozen gemeenten, in volgorde van kiezen |
+| `max` | maximaal aantal gekozen gemeenten |
+
+Een gedeelde link met meer dan `max` gemeenten houdt de eerste `max`.
+
+## Eigen teksten
+
+Het pakket gebruikt Engelse standaardteksten. Alle zichtbare teksten zijn
+argumenten: `label`, `placeholder` en `no_results` bij `qr_select()`, en
+`label`, `empty` en `remove` bij `qr_selection_bar()`.

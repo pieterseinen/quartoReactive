@@ -30,10 +30,11 @@ NULL
 #'   removable chips). Uses the bundled Tom Select library; `FALSE` gives a
 #'   plain list box.
 #' @param placeholder Text shown in the search field.
+#' @param no_results Text shown when the search matches nothing.
 #' @param size Rows shown by the plain list box; defaults to up to 8.
 #' @export
 qr_select <- function(param, choices, label = param, multiple = TRUE, search = TRUE,
-                      placeholder = NULL, size = NULL) {
+                      placeholder = NULL, no_results = "No results", size = NULL) {
   choices <- .check_choices(choices)
   size <- size %||% if (multiple) min(length(choices), 8L) else 1L
   options <- unname(Map(function(value, text) htmltools::tags$option(value = value, text),
@@ -41,6 +42,7 @@ qr_select <- function(param, choices, label = param, multiple = TRUE, search = T
   select <- htmltools::tags$select(
     multiple = if (multiple) NA, size = size,
     `data-qr-search` = if (search) NA, `data-qr-placeholder` = placeholder,
+    `data-qr-no-results` = if (search) no_results,
     `aria-label` = if (is.character(label)) label,
     options
   )

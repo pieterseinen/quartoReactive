@@ -1,5 +1,5 @@
-# Pre-render: the selection store, the sidebar input and the selection bar for
-# every chapter.
+# Pre-render: de selectie, de invoer in de zijbalk en de selectiebalk voor
+# alle hoofdstukken.
 source("_common.R")
 
 qr_book_setup(
@@ -7,7 +7,7 @@ qr_book_setup(
                                      always = benchmarks, colors = palette,
                                      max = length(palette))),
   sidebar = qr_select("gemeente", choices, label = "Gemeenten",
-                      placeholder = "Zoek een gemeente"),
+                      placeholder = "Zoek een gemeente", no_results = "Geen gemeente gevonden"),
   top     = qr_selection_bar("gemeente", choices, label = "Vergelijking:",
                              empty = "Geen gemeente gekozen: alle gemeenten getoond.",
                              remove = "Verwijder")

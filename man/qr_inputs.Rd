@@ -14,6 +14,7 @@ qr_select(
   multiple = TRUE,
   search = TRUE,
   placeholder = NULL,
+  no_results = "No results",
   size = NULL
 )
 
@@ -36,6 +37,8 @@ removable chips). Uses the bundled Tom Select library; \code{FALSE} gives a
 plain list box.}
 
 \item{placeholder}{Text shown in the search field.}
+
+\item{no_results}{Text shown when the search matches nothing.}
 
 \item{size}{Rows shown by the plain list box; defaults to up to 8.}
 }

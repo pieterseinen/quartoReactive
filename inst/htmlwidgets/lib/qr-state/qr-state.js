@@ -160,7 +160,15 @@
       maxItems: multiple ? max : 1,
       placeholder: select.dataset.qrPlaceholder || '',
       hidePlaceholder: false,
-      closeAfterSelect: !multiple
+      closeAfterSelect: !multiple,
+      render: {
+        no_results: function () {
+          var div = document.createElement('div');
+          div.className = 'no-results';
+          div.textContent = select.dataset.qrNoResults || 'No results';
+          return div;
+        }
+      }
     });
     var syncing = false;
     ts.on('change', function () {

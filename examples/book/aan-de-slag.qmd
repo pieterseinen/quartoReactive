@@ -1,0 +1,94 @@
+---
+code-fold: false
+---
+
+# Aan de slag
+
+```{r}
+#| echo: false
+source("_common.R")
+```
+
+Een boek met quartoReactive heeft drie onderdelen:
+
+1. een **selectieparameter**, bijvoorbeeld `gemeente`: de codes van de
+   gemeenten die de lezer wil vergelijken;
+2. **invoer** waarmee de lezer die parameter verandert, zoals een zoekbare
+   keuzelijst in de zijbalk;
+3. **grafieken en tabellen** die de parameter volgen.
+
+Dit hoofdstuk zet die drie stappen neer met de bestanden van dit boek zelf.
+
+## Stap 1: `_quarto.yml`
+
+Een gewoon Quarto-boek, met drie toevoegingen: een pre-render script dat de
+parameter instelt, en twee bestanden die dat script schrijft en die Quarto in
+elke pagina opneemt.
+
+```{r}
+#| echo: false
+#| class-output: yaml
+#| comment: ""
+cat(readLines("_quarto.yml"), sep = "\n")
+```
+
+## Stap 2: `_setup.R`
+
+Quarto voert dit script uit vóór het renderen. `qr_book_setup()` schrijft
+`_qr-header.html` en `_qr-sidebar.html`.
+
+```{r}
+#| file: _setup.R
+#| eval: false
+```
+
+- `qr_param()` beschrijft de parameter: welke gemeenten bij het eerste bezoek
+  gekozen zijn (`default`), welke regio's altijd in beeld blijven (`always`),
+  de kleuren voor gekozen gemeenten (`colors`) en het maximum (`max`).
+- `sidebar` zet een invoer in de zijbalk van elke pagina.
+- `top` zet iets bovenaan elk hoofdstuk, hier de selectiebalk die je hierboven
+  ziet. Op een telefoon, waar de zijbalk verborgen is, blijft die balk in
+  beeld tijdens het scrollen.
+
+`choices` en `palette` komen uit `_common.R`, een script dat alle hoofdstukken
+delen:
+
+```{r}
+#| file: _common.R
+#| eval: false
+```
+
+## Stap 3: een grafiek die de selectie volgt
+
+In een hoofdstuk geef je de data via `qr_data()` aan een widget. Het tweede
+argument is de kolom met de sleutel die de parameter kiest, hier de CBS-code.
+
+```{r}
+library(plotly)
+
+oud <- bevolking[bevolking$jaar == 2025, ]
+oud$pct_65_plus <- round(100 * (oud$leeftijd_65_80 + oud$leeftijd_80_plus) / oud$inwoners, 1)
+
+plot_ly(qr_data(oud, "code", "gemeente"), x = ~naam, y = ~pct_65_plus, type = "bar") |>
+  layout(xaxis = list(title = ""), yaxis = list(title = "% 65 jaar of ouder, 2025"))
+```
+
+Verander de selectie in de zijbalk: de balken volgen. Zonder selectie toont
+de grafiek alle gemeenten.
+
+## Renderen
+
+```bash
+quarto render
+```
+
+Het resultaat in `_book/` is een statische website: geen server nodig. Dit
+boek staat via GitHub Actions op GitHub Pages; zie
+[`.github/workflows/book.yml`](https://github.com/pieterseinen/quartoReactive/blob/main/.github/workflows/book.yml)
+in de repository.
+
+::: callout-note
+De selectie wordt bewaard in de *sessionStorage* van de browser. Die werkt
+niet betrouwbaar als je de HTML-bestanden direct opent (`file://`). Bekijk het
+boek daarom via `quarto preview` of een webserver.
+:::
