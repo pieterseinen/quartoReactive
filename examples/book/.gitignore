@@ -1,0 +1,7 @@
+_book/
+.quarto/
+_qr-*.html
+*_files/
+
+/.quarto/
+**/*.quarto_ipynb

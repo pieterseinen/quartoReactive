@@ -1,0 +1,91 @@
+---
+code-fold: false
+---
+
+# Eigen widgets
+
+```{r}
+#| echo: false
+source("_common.R")
+```
+
+Niet alles past in crosstalk. Daarom heeft het pakket eigen widgets, en kun je
+er zelf bij maken. Ze praten rechtstreeks met de selectie in de browser.
+
+## Iconen vullen: `qr_iconfill()`
+
+Een icoon per gemeente, gevuld tot een percentage. Gekozen gemeenten krijgen
+hun selectiekleur, de `always`-regio's de kleur uit `color`.
+
+```{r}
+oud <- bevolking[bevolking$jaar == 2025, ]
+oud$pct_65_plus <- round(100 * (oud$leeftijd_65_80 + oud$leeftijd_80_plus) / oud$inwoners, 1)
+
+qr_iconfill(oud, key = "code", value = "pct_65_plus", label = "naam",
+            param = "gemeente", digits = 1, color = "#8f8e88")
+```
+
+## De selectie in JavaScript
+
+Op elke pagina staat `window.qrState`. Daarmee kan elk stukje JavaScript de
+selectie lezen, volgen en veranderen:
+
+| Functie | Doet |
+|---|---|
+| `qrState.get(param)` | de gekozen sleutels |
+| `qrState.set(param, keys)` | selectie vervangen (houdt zich aan `max`) |
+| `qrState.subscribe(param, fn)` | `fn(keys)` nu en bij elke wijziging; geeft een functie terug om te stoppen |
+| `qrState.visible(param)` | wat een widget moet tonen: selectie plus `always`, of `null` voor alles |
+| `qrState.color(param, key)` | selectiekleur van een gekozen sleutel |
+| `qrState.always(param)`, `qrState.max(param)` | instellingen van de parameter |
+
+Een klein voorbeeld: een zin die meeschrijft met de selectie.
+
+```{r}
+namen <- jsonlite::toJSON(as.list(setNames(names(choices), choices)), auto_unbox = TRUE)
+
+htmltools::tagList(
+  htmltools::p(id = "zin"),
+  htmltools::tags$script(htmltools::HTML(sprintf("
+    var namen = %s;
+    qrState.subscribe('gemeente', function (codes) {
+      var lijst = codes.map(function (c) { return namen[c] || c; });
+      document.getElementById('zin').textContent = lijst.length
+        ? 'Je vergelijkt ' + lijst.length + ' gemeente(n): ' + lijst.join(', ') + '.'
+        : 'Je hebt nog geen gemeente gekozen.';
+    });", namen)))
+)
+```
+
+## Zelf een htmlwidget maken
+
+Een htmlwidget voor quartoReactive is een gewoon
+[htmlwidget](https://www.htmlwidgets.org/develop_intro.html) dat in
+`renderValue` op de selectie abonneert. Zo werkt `qr_iconfill()` ook. De
+JavaScript-kant:
+
+```js
+HTMLWidgets.widget({
+  name: 'mijn_widget',
+  type: 'output',
+  factory: function (el) {
+    var stop = null;
+    return {
+      renderValue: function (x) {
+        if (stop) stop();
+        stop = qrState.subscribe(x.param, function (keys) {
+          var tonen = qrState.visible(x.param, keys) || x.keys;  // null = alles
+          // ... teken alleen de sleutels in `tonen`,
+          //     in kleur qrState.color(x.param, key) als die er is
+        });
+      },
+      resize: function () {}
+    };
+  }
+});
+```
+
+Aan de R-kant geef je `param` en de sleutels mee in `x`, en voeg je de
+selectie toe als afhankelijkheid, zodat het widget ook buiten een boek werkt.
+Zie de broncode van
+[`qr_iconfill()`](https://github.com/pieterseinen/quartoReactive/blob/main/R/iconfill.R).

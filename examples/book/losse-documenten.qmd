@@ -1,0 +1,48 @@
+---
+code-fold: false
+---
+
+# Losse documenten
+
+Je hebt geen boek nodig. In een los Quarto-document stel je de parameter in
+met `qr_config()`, in een chunk vóór de invoer en de grafieken. Invoer en
+widgets van het pakket nemen de benodigde JavaScript zelf mee.
+
+````markdown
+---
+title: "Inkomen in Hart voor Brabant"
+format: html
+---
+
+```{r}
+#| echo: false
+library(quartoReactive)
+library(plotly)
+
+inkomen <- read.csv(system.file("extdata", "hvb_inkomen.csv", package = "quartoReactive"))
+gemeenten <- unique(inkomen[inkomen$code != "NL01", c("code", "naam")])
+choices <- setNames(gemeenten$code, gemeenten$naam)
+
+qr_config(list(gemeente = qr_param(default = "GM0855", always = "NL01", max = 4)))
+```
+
+```{r}
+#| echo: false
+qr_select("gemeente", choices, label = "Gemeenten")
+```
+
+```{r}
+#| echo: false
+plot_ly(qr_data(inkomen, "code", "gemeente"), x = ~jaar, y = ~mediaan_gestand,
+        color = ~naam, type = "scatter", mode = "lines")
+```
+````
+
+Wat anders is dan in een boek:
+
+- Er is geen zijbalk of `top`; zet de invoer en eventueel een
+  `qr_selection_bar()` zelf in het document.
+- Documenten met hetzelfde `id` (`qr_config(..., id = "hvb")`) delen hun
+  selectie zolang het browsertabblad open is. Zo kun je ook losse pagina's van
+  een website aan elkaar koppelen.
+- De link in de adresbalk bewaart de selectie, net als in een boek.

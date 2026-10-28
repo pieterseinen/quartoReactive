@@ -1,0 +1,22 @@
+# Public transit
+
+```{r setup}
+#| include: false
+library(quartoReactive)
+library(plotly)
+source("data.R")
+
+transit <- transit_data()
+```
+
+Share of households within 500 m of a bus stop.
+
+```{r}
+#| echo: false
+qr_iconfill(transit, key = "code", value = "pct_near_stop", label = "name", param = "gemeente")
+```
+
+```{r}
+#| echo: false
+plot_ly(qr_data(transit, "code", "gemeente"), x = ~name, y = ~pct_near_stop, type = "bar")
+```

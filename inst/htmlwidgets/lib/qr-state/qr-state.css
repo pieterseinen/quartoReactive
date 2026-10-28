@@ -1,0 +1,32 @@
+.qr-input { margin-bottom: 1rem; }
+.qr-input-label { font-weight: 600; margin-bottom: .25rem; }
+.qr-option { display: block; font-size: .9rem; }
+.qr-input select { width: 100%; max-width: 30rem; }
+#qr-sidebar-inputs { padding: .75rem 1rem; border-top: 1px solid #dee2e6; }
+.qr-icon { display: inline-block; vertical-align: top; min-width: 8em; text-align: center; margin: 0 .5em 1em 0; }
+#qr-sidebar-inputs .ts-wrapper { width: 100%; }
+.qr-input .ts-wrapper { max-width: 30rem; }
+
+/* Selection bar: the current selection as removable chips. */
+.qr-selection-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem;
+  padding: .45rem 0; margin-bottom: 1rem; font-size: .9rem; }
+.qr-selection-bar.qr-sticky { position: sticky; top: 0; z-index: 10;
+  background: var(--bs-body-bg, #fff); border-bottom: 1px solid var(--bs-border-color, #dee2e6); }
+.qr-bar-label { font-weight: 600; }
+.qr-bar-empty { display: none; color: var(--bs-secondary-color, #6c757d); }
+.qr-selection-bar.qr-empty .qr-bar-empty { display: inline; }
+.qr-chips { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; margin: 0; padding: 0; }
+.qr-chip { display: inline-flex; align-items: center; gap: .35rem; padding: 0 0 0 .6rem;
+  border: 1px solid var(--bs-border-color, #dee2e6); border-radius: 1rem; }
+.qr-chip[style]::before { content: ""; width: .7rem; height: .7rem; border-radius: 50%;
+  background: var(--qr-chip-color); }
+.qr-chip button { border: 0; background: none; color: inherit; cursor: pointer;
+  min-width: 1.75rem; min-height: 1.75rem; line-height: 1; border-radius: 1rem; }
+.qr-chip button:hover, .qr-chip button:focus-visible { background: var(--bs-tertiary-bg, #f1f3f5); }
+/* The wrapper qr_book_setup() moves into place must not limit sticky. */
+#qr-top { display: contents; }
+/* Sidebar chips: one line each, long names truncated. */
+#qr-sidebar-inputs .ts-control .item { white-space: nowrap; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; }
+/* Icons wrap onto more rows on narrow screens: grow instead of scrolling. */
+.qr_iconfill.html-widget { height: auto !important; min-height: 0; }

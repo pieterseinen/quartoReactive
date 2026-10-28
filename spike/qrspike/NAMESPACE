@@ -1,4 +1,0 @@
-export(qr_book_includes)
-export(qr_iconfill)
-export(qr_input)
-export(qr_shared)

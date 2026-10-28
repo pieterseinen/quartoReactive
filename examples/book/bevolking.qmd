@@ -1,0 +1,28 @@
+# Bevolking
+
+```{r}
+#| echo: false
+source("_common.R")
+bevolking$pct_65_plus <- round(100 * (bevolking$leeftijd_65_80 + bevolking$leeftijd_80_plus) /
+                                 bevolking$inwoners, 1)
+bevolking$pct_0_15 <- round(100 * bevolking$leeftijd_0_15 / bevolking$inwoners, 1)
+```
+
+## Vergrijzing
+
+Aandeel inwoners van 65 jaar of ouder op 1 januari. Land van Cuijk en
+Maashorst bestaan sinds 2022, Meierijstad sinds 2017.
+
+```{r}
+lijnen(bevolking, ~pct_65_plus, "% 65 jaar of ouder")
+```
+
+## Kerncijfers 2025
+
+```{r}
+k <- bevolking[bevolking$jaar == 2025,
+               c("code", "naam", "inwoners", "pct_0_15", "pct_65_plus", "dichtheid_per_km2")]
+tabel(k, colnames = c("code", "Gemeente", "Inwoners", "% 0-15 jaar", "% 65+",
+                      "Inwoners per km²")) |>
+  DT::formatRound("inwoners", digits = 0, mark = ".")
+```
