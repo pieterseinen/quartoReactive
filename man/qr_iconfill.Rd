@@ -10,10 +10,16 @@ qr_iconfill(
   value,
   label = key,
   param,
+  icon = "house",
   digits = 0,
+  decimal_mark = ".",
+  suffix = "\%",
   color = "#2a7ab0",
+  background = "#dde3e8",
+  size = 64,
+  duration = 900,
   width = "100\%",
-  height = 170,
+  height = "auto",
   elementId = NULL
 )
 }
@@ -25,12 +31,26 @@ percentage (0-100) and the caption.}
 
 \item{param}{Name of the selection parameter.}
 
+\item{icon}{A built-in icon (see \code{\link[=qr_icons]{qr_icons()}}), a path to an \code{.svg} file, or
+SVG markup. The icon's shape is filled, so solid icons work best; the fill
+height is measured on the shape, not on the empty space around it.}
+
 \item{digits}{Decimals shown in the caption.}
+
+\item{decimal_mark}{Decimal separator in the caption, e.g. \code{","}.}
+
+\item{suffix}{Text after the number.}
 
 \item{color}{Fill colour; selected keys use the parameter's \code{colors}
 instead when it has them (see \code{\link[=qr_param]{qr_param()}}).}
 
-\item{width, height}{Widget size.}
+\item{background}{Colour of the unfilled part of the icon.}
+
+\item{size}{Icon height in pixels.}
+
+\item{duration}{Length of the fill animation in milliseconds; 0 for none.}
+
+\item{width, height}{Widget size. The default height grows with the icons.}
 
 \item{elementId}{Optional element id.}
 }
@@ -40,10 +60,13 @@ An htmlwidget.
 \description{
 Draws one icon per row, filled from the bottom up to the row's value, and
 shows only the rows whose key is selected in \code{param} (plus its \code{always}
-keys).
+keys). Icons fill up from empty when the page loads and when they appear
+after a selection change, while their number counts up. Readers who ask
+their system for reduced motion see the final state at once.
 }
 \examples{
 d <- data.frame(code = c("GM0855", "GM0828"), naam = c("Tilburg", "Oss"),
                 pct = c(72.1, 73.8))
-qr_iconfill(d, key = "code", value = "pct", label = "naam", param = "gemeente")
+qr_iconfill(d, key = "code", value = "pct", label = "naam", param = "gemeente",
+            icon = "heart", digits = 1, decimal_mark = ",")
 }

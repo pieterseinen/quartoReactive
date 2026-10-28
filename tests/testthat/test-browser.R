@@ -97,7 +97,7 @@ test_that("selected keys keep their colour while the selection changes", {
     unlist(cols)[order(names(cols))]
   }
   icon_color <- function(key) {
-    tab$eval(sprintf('document.querySelector(".qr-icon[data-key=\\"%s\\"] stop").getAttribute("stop-color")', key))
+    tab$eval(sprintf('document.querySelector(".qr-icon[data-key=\\"%s\\"] .qr-icon-fill").getAttribute("fill")', key))
   }
   nl <- function(cols) cols[setdiff(names(cols), "Nederland")]
 
@@ -117,6 +117,74 @@ test_that("selected keys keep their colour while the selection changes", {
   chip_color <- tab$eval('document.querySelector(".qr-chip[data-key=\\"GM9004\\"]").style.getPropertyValue("--qr-chip-color")')
   expect_identical(chip_color, "#aa0000")
   expect_identical(tab$errors(), character())
+})
+
+# Filled share of each icon's shape (fill height / shape height), by key.
+icon_fill_js <- 'JSON.stringify(Object.fromEntries(Array.from(document.querySelectorAll(".qr-icon"))
+  .map(function (f) {
+    var fill = f.querySelector(".qr-icon-fill"), back = f.querySelector("rect");
+    return [f.dataset.key, +fill.getAttribute("height") / +back.getAttribute("height")];
+  })))'
+icon_fills <- function(tab) unlist(jsonlite::fromJSON(tab$eval(icon_fill_js)))
+pct_of <- stats::setNames(transit_data()$pct_near_stop / 100, transit_data()$code)
+
+test_that("icons fill up to their value, measured on the icon's shape", {
+  tab <- browser_tab(base)
+  tab$go("transit.html?gemeente=GM9001,GM9003")
+  fills <- icon_fills(tab)
+  expect_equal(fills, pct_of[names(fills)], tolerance = 1e-6)
+  # The person icon does not fill its 16x16 viewBox, so the shape box is smaller.
+  shape_height <- tab$eval('+document.querySelector(".qr-icon rect").getAttribute("height")')
+  expect_lt(shape_height, 16)
+  expect_identical(tab$eval('document.querySelector(".qr-icon[data-key=\\"GM9001\\"] strong").textContent'),
+                   paste0(transit_data()$pct_near_stop[1], "%"))
+  expect_identical(tab$errors(), character())
+})
+
+test_that("a new icon fills up from empty; icons already shown stay put", {
+  tab <- browser_tab(base)
+  tab$go("transit.html?gemeente=GM9001")
+  # In one go: mark the shown icon, add a key, read the new icon at once.
+  res <- jsonlite::fromJSON(tab$eval('(function () {
+    var old = document.querySelector(".qr-icon[data-key=\\"GM9001\\"]");
+    old.dataset.marker = "kept";
+    qrState.set("gemeente", ["GM9001", "GM9004"]);
+    var fresh = document.querySelector(".qr-icon[data-key=\\"GM9004\\"] .qr-icon-fill");
+    return JSON.stringify({
+      newHeight: +fresh.getAttribute("height"),
+      kept: document.querySelector(".qr-icon[data-key=\\"GM9001\\"]").dataset.marker || null
+    });
+  })()'))
+  expect_identical(res$newHeight, 0L)
+  expect_identical(res$kept, "kept")
+  Sys.sleep(1)
+  expect_equal(icon_fills(tab)[["GM9004"]], pct_of[["GM9004"]], tolerance = 1e-6)
+  expect_identical(tab$errors(), character())
+})
+
+test_that("an icon out of view waits until it is scrolled into view", {
+  tab <- browser_tab(base)
+  tab$go("transit.html?gemeente=GM9001")
+  tab$run('document.body.style.paddingBottom = "4000px"; window.scrollTo(0, 3500);
+           qrState.set("gemeente", ["GM9001", "GM9005"]);')
+  Sys.sleep(1)
+  expect_identical(icon_fills(tab)[["GM9005"]], 0)
+  tab$run('document.querySelector(".qr-icon[data-key=\\"GM9005\\"]").scrollIntoView({block: "center"})')
+  Sys.sleep(1)
+  expect_equal(icon_fills(tab)[["GM9005"]], pct_of[["GM9005"]], tolerance = 1e-6)
+  expect_identical(tab$errors(), character())
+})
+
+test_that("with reduced motion icons are full at once", {
+  tab <- browser_tab(base, reduced_motion = TRUE)
+  tab$go("transit.html?gemeente=GM9001")
+  res <- tab$eval('(function () {
+    qrState.set("gemeente", ["GM9001", "GM9006"]);
+    var f = document.querySelector(".qr-icon[data-key=\\"GM9006\\"]");
+    return +f.querySelector(".qr-icon-fill").getAttribute("height") /
+           +f.querySelector("rect").getAttribute("height");
+  })()')
+  expect_equal(res, pct_of[["GM9006"]], tolerance = 1e-6)
 })
 
 test_that("a shared link opens with its selection, and empty means everything", {

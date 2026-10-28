@@ -52,9 +52,13 @@ serve_dir <- function(dir, env = parent.frame()) {
 }
 
 # A browser tab that records uncaught JS errors in `$errors()`.
-browser_tab <- function(base, env = parent.frame()) {
+browser_tab <- function(base, reduced_motion = FALSE, env = parent.frame()) {
   b <- chromote::ChromoteSession$new()
   withr::defer(b$close(), envir = env)
+  if (reduced_motion) {
+    b$Emulation$setEmulatedMedia(features = list(list(name = "prefers-reduced-motion",
+                                                      value = "reduce")))
+  }
   errors <- character()
   b$Runtime$enable()
   b$Runtime$exceptionThrown(callback = function(m) {

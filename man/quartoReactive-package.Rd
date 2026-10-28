@@ -31,6 +31,7 @@ Authors:
 Other contributors:
 \itemize{
   \item Tom Select contributors (Tom Select library in inst/htmlwidgets/lib/tom-select (Apache-2.0)) [contributor, copyright holder]
+  \item The Bootstrap Authors (Bootstrap Icons in inst/icons (MIT)) [contributor, copyright holder]
 }
 
 }

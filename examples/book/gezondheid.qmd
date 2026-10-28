@@ -17,7 +17,8 @@ Aandeel volwassenen (18+) dat de eigen gezondheid goed of zeer goed noemt, 2024.
 
 ```{r}
 qr_iconfill(indicator("D005390"), key = "code", value = "waarde", label = "naam",
-            param = "gemeente", digits = 1, color = "#8f8e88")
+            param = "gemeente", icon = "heart", digits = 1, decimal_mark = ",",
+            color = "#8f8e88")
 ```
 
 ## Leefstijl en welzijn, 2024

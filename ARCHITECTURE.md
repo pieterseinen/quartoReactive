@@ -21,7 +21,7 @@ everything runs in the browser from the rendered HTML.
  qr_data(df, key, param)                     ├──▶ crosstalk FilterHandle(param)
    = crosstalk SharedData(group = param) ◀───┘      plotly, DT, leaflet, ...
                                              │
- qr_iconfill(), later qr_sunburst(), ... ◀───┘ subscribe directly
+ qr_iconfill(), later qr_map_select() ◀──┘ subscribe directly
 ```
 
 ### The store (`inst/htmlwidgets/lib/qr-state/qr-state.js`)
@@ -75,7 +75,7 @@ Workarounds the bridge carries (all covered by the browser tests):
 
 ### Own widgets
 
-Widgets crosstalk cannot express (icon fill, sunburst, map selector) are
+Widgets crosstalk cannot express (icon fill, map selector) are
 htmlwidgets in this package that call `qrState.subscribe(param, fn)` and
 render what `qrState.visible()` returns. They attach the store as a dependency,
 so they also work in a standalone document.
@@ -113,6 +113,6 @@ history (`spike/`, commit ff3344e).
 
 1. ~~Core: store, bridge, inputs, book setup, icon fill, tests~~ (0.2.0)
 2. ~~Searchable multi-select, selection bar, maximum selection size~~ (0.3.0)
-3. Sunburst widget; custom icons for the icon fill
+3. ~~Icon fill: any SVG icon, fill animation~~ (0.4.0; sunburst dropped)
 4. Map selector from municipality polygons (`inst/extdata/hart_voor_brabant.gpkg`)
 5. Robustness: leaflet, widgets in tabsets, `quarto preview`, documentation site
