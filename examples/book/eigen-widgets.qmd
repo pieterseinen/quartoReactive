@@ -15,15 +15,49 @@ er zelf bij maken. Ze praten rechtstreeks met de selectie in de browser.
 ## Iconen vullen: `qr_iconfill()`
 
 Een icoon per gemeente, gevuld tot een percentage. Gekozen gemeenten krijgen
-hun selectiekleur, de `always`-regio's de kleur uit `color`.
+hun selectiekleur, de `always`-regio's de kleur uit `color`. De iconen lopen
+vol, en de getallen tellen op, zodra ze in beeld komen. Kies je er een
+gemeente bij, dan loopt alleen het nieuwe icoon vol.
 
 ```{r}
 oud <- bevolking[bevolking$jaar == 2025, ]
 oud$pct_65_plus <- round(100 * (oud$leeftijd_65_80 + oud$leeftijd_80_plus) / oud$inwoners, 1)
 
 qr_iconfill(oud, key = "code", value = "pct_65_plus", label = "naam",
-            param = "gemeente", digits = 1, color = "#8f8e88")
+            param = "gemeente", icon = "person", digits = 1, decimal_mark = ",",
+            color = "#8f8e88")
 ```
+
+De vulling wordt gemeten op de vorm van het icoon, niet op de lege ruimte
+eromheen: 50% vult de helft van het poppetje. Wie in het besturingssysteem
+"minder beweging" heeft ingesteld, ziet de iconen meteen vol.
+
+### Ingebouwde iconen
+
+```{r}
+qr_icons()
+```
+
+Ze komen uit [Bootstrap Icons](https://icons.getbootstrap.com) (MIT-licentie).
+
+### Een eigen icoon
+
+`icon` kan ook een SVG-bestand zijn of SVG-code als tekst. Gevulde iconen
+werken het best; van een lijnicoon vult alleen de lijn. Hier een trofee, ook
+uit Bootstrap Icons, voor het aandeel volwassenen dat wekelijks sport:
+
+```{r}
+sport <- gezondheid[gezondheid$leeftijd == "18+" & gezondheid$cbs_code == "M005915",
+                    c("code", "naam", "waarde")]
+
+qr_iconfill(sport, key = "code", value = "waarde", label = "naam",
+            param = "gemeente", icon = "icons/trophy.svg", digits = 1,
+            decimal_mark = ",", color = "#8f8e88", size = 56)
+```
+
+Andere instellingen: `background` (kleur van het lege deel), `suffix`
+(tekst achter het getal) en `duration` (duur van de animatie in
+milliseconden, `0` voor geen animatie).
 
 ## De selectie in JavaScript
 

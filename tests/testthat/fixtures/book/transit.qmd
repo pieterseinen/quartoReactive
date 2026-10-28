@@ -13,7 +13,8 @@ Share of households within 500 m of a bus stop.
 
 ```{r}
 #| echo: false
-qr_iconfill(transit, key = "code", value = "pct_near_stop", label = "name", param = "gemeente")
+qr_iconfill(transit, key = "code", value = "pct_near_stop", label = "name", param = "gemeente",
+            icon = "person", duration = 600)
 ```
 
 ```{r}
